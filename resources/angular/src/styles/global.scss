@@ -2,7 +2,7 @@
 @import 'variables';
 @import 'themes';
 
-// Global styles
+// Global reset styles
 * {
   margin: 0;
   padding: 0;
@@ -16,16 +16,17 @@ html, body {
 
 body {
   margin: 0;
-  font-size: $md-body-large-size;
-  font-weight: $md-body-large-weight;
-  line-height: $md-body-large-line;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  background-color: #fff;
+  color: #000;
 }
 
-// Typography utilities
-.display-large {
-  font-size: $md-display-large-size;
-  line-height: $md-display-large-line;
-  font-weight: $md-display-large-weight;
+// Dark theme
+.dark-theme {
+  background-color: #121212;
+  color: #fff;
 }
 
 .display-medium {
