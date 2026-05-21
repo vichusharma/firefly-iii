@@ -1,0 +1,156 @@
+// src/styles/global.scss
+@import 'variables';
+@import 'themes';
+
+// Global styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+body {
+  margin: 0;
+  font-size: $md-body-large-size;
+  font-weight: $md-body-large-weight;
+  line-height: $md-body-large-line;
+}
+
+// Typography utilities
+.display-large {
+  font-size: $md-display-large-size;
+  line-height: $md-display-large-line;
+  font-weight: $md-display-large-weight;
+}
+
+.display-medium {
+  font-size: $md-display-medium-size;
+  line-height: $md-display-medium-line;
+  font-weight: $md-display-medium-weight;
+}
+
+.headline-large {
+  font-size: $md-headline-large-size;
+  line-height: $md-headline-large-line;
+  font-weight: $md-headline-large-weight;
+}
+
+.headline-medium {
+  font-size: $md-headline-medium-size;
+  line-height: $md-headline-medium-line;
+  font-weight: $md-headline-medium-weight;
+}
+
+.title-large {
+  font-size: $md-title-large-size;
+  line-height: $md-title-large-line;
+  font-weight: $md-title-large-weight;
+}
+
+.title-medium {
+  font-size: $md-title-medium-size;
+  line-height: $md-title-medium-line;
+  font-weight: $md-title-medium-weight;
+}
+
+.body-large {
+  font-size: $md-body-large-size;
+  line-height: $md-body-large-line;
+  font-weight: $md-body-large-weight;
+}
+
+.body-medium {
+  font-size: $md-body-medium-size;
+  line-height: $md-body-medium-line;
+  font-weight: $md-body-medium-weight;
+}
+
+.body-small {
+  font-size: $md-body-small-size;
+  line-height: $md-body-small-line;
+  font-weight: $md-body-small-weight;
+}
+
+.label-large {
+  font-size: $md-label-large-size;
+  line-height: $md-label-large-line;
+  font-weight: $md-label-large-weight;
+}
+
+// Spacing utilities
+.mt-xs { margin-top: $md-spacing-xs; }
+.mt-sm { margin-top: $md-spacing-sm; }
+.mt-md { margin-top: $md-spacing-md; }
+.mt-lg { margin-top: $md-spacing-lg; }
+.mt-xl { margin-top: $md-spacing-xl; }
+
+.mb-xs { margin-bottom: $md-spacing-xs; }
+.mb-sm { margin-bottom: $md-spacing-sm; }
+.mb-md { margin-bottom: $md-spacing-md; }
+.mb-lg { margin-bottom: $md-spacing-lg; }
+.mb-xl { margin-bottom: $md-spacing-xl; }
+
+.px-md { padding-left: $md-spacing-md; padding-right: $md-spacing-md; }
+.py-md { padding-top: $md-spacing-md; padding-bottom: $md-spacing-md; }
+
+// Flexbox utilities
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+// Grid utilities
+.gap-md {
+  gap: $md-spacing-md;
+}
+
+// Common styles
+app-root {
+  display: block;
+  height: 100%;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $md-spacing-lg;
+}
+
+.card {
+  border-radius: $md-border-radius-md;
+  padding: $md-spacing-md;
+  box-shadow: $md-elevation-1;
+}
+
+.button-group {
+  display: flex;
+  gap: $md-spacing-md;
+}
+
+// Loading spinner
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
