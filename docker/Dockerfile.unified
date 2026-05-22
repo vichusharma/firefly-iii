@@ -27,4 +27,39 @@ COPY --from=angular-builder /app/dist/firefly-ui/index.html /var/www/html/public
 # This will be automatically included by Firefly III's http.conf
 COPY docker/nginx-angular.conf /etc/nginx/server-opts.d/angular.conf
 
+# Inject SPA routes directly into web.php using a temporary PHP file
+RUN cat > /tmp/inject_routes.php << 'EOF'
+<?php
+$webPhpPath = '/var/www/html/routes/web.php';
+$content = file_get_contents($webPhpPath);
+
+// Check if routes are already injected
+if (strpos($content, "csrf-token") !== false) {
+    exit(0);
+}
+
+// Find the use statement and insert routes after it
+$routesCode = <<<'ROUTES'
+
+// CSRF token endpoint for SPA
+Route::get('/csrf-token', static function () { return response()->json(['csrf_token' => csrf_token()]); });
+
+// Registration endpoint for SPA
+Route::post('/register', [\FireflyIII\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register');
+
+// Login endpoint for SPA
+Route::post('/login', [\FireflyIII\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
+ROUTES;
+
+// Insert after the use statement
+$pattern = '/use Illuminate\\\\Support\\\\Facades\\\\Route;/';
+$replacement = 'use Illuminate\\\\Support\\\\Facades\\\\Route;' . $routesCode;
+$newContent = preg_replace($pattern, $replacement, $content, 1);
+
+file_put_contents($webPhpPath, $newContent);
+echo "Routes injected successfully\n";
+EOF
+
+RUN php /tmp/inject_routes.php
+
 EXPOSE 8080

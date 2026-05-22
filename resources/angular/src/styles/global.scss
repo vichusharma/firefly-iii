@@ -208,3 +208,149 @@ app-root {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
+
+// Material Dialog styling for Firefly III - FIX SKEWING
+// Material Dialog creates multiple wrapper layers, we need to style them all
+.cdk-overlay-pane {
+  // The outer overlay pane
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.firefly-dialog-container {
+  // Panel class applied to dialog config
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  width: 100% !important;
+  
+  .mat-mdc-dialog-container {
+    // Material's inner container
+    padding: 0 !important;
+    border-radius: 12px;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  
+  app-account-create-dialog,
+  app-transaction-create-dialog,
+  app-budget-create-dialog {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+  }
+}
+
+// CENTER THE DIALOG ON THE SCREEN - CRITICAL FIX
+// Material Dialog uses absolute positioning at 0,0 - override with transforms
+.cdk-overlay-pane {
+  // Ensure overlay doesn't mess with pointer events
+  pointer-events: auto !important;
+}
+
+// The dialog container needs to be centered using transforms
+.cdk-overlay-pane.firefly-dialog-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: auto !important;
+  height: auto !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1000 !important;
+}
+
+// Material's dialog container gets the centering treatment
+.firefly-dialog-container .mat-mdc-dialog-container {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  max-width: min(95vw, 700px) !important;
+  width: auto !important;
+}
+
+// Ensure dialog backdrop is properly positioned
+.cdk-overlay-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  z-index: 999 !important;
+}
+
+// Allow pointer events on dialog content
+.cdk-overlay-pane > * {
+  pointer-events: auto !important;
+}
+
+// Fix for Material Form Fields in dialogs - prevent shrinking
+.mat-mdc-form-field {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  max-width: 100% !important;
+}
+
+.mat-mdc-form-field-infix {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+// Fix input elements
+.mat-mdc-text-field-wrapper {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+.mdc-text-field {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+.mdc-text-field__input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+input.mat-mdc-input-element,
+textarea.mat-mdc-input-element,
+select.mat-mdc-input-element {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+// Fix mat-select
+.mat-mdc-select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+.mat-mdc-select-trigger {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+// Global box-sizing for all form elements
+* {
+  box-sizing: border-box;
+}
