@@ -20,4 +20,15 @@ FROM fireflyiii/core:latest
 # Firefly III serves static files from public/dist
 COPY --from=angular-builder /app/dist/firefly-ui /var/www/html/public/dist
 
+# Copy custom Nginx configuration for Angular SPA routing
+# This will be automatically included by Firefly III's http.conf
+COPY docker/nginx-angular.conf /etc/nginx/server-opts.d/angular.conf
+
 EXPOSE 8080
+
+
+
+
+
+
+
