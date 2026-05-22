@@ -43,7 +43,12 @@ export class AuthService {
       .post<any>(`${this.apiUrl}/login`, {
         email: email,
         password: password,
-      }, { withCredentials: true })
+      }, { 
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
       .pipe(
         tap((response) => {
           // For session-based auth, we store a token to track if user is authenticated
@@ -63,7 +68,19 @@ export class AuthService {
         }),
         catchError((error) => {
           console.error('Login failed', error);
-          const errorMsg = error.error?.message || error.error?.errors?.email?.[0] || 'Login failed';
+          let errorMsg = 'Login failed';
+          
+          // Try to extract error message from various response formats
+          if (error.error?.message) {
+            errorMsg = error.error.message;
+          } else if (error.error?.errors?.email?.[0]) {
+            errorMsg = error.error.errors.email[0];
+          } else if (error.error?.errors?.password?.[0]) {
+            errorMsg = error.error.errors.password[0];
+          } else if (typeof error.error === 'string') {
+            errorMsg = error.error;
+          }
+          
           return throwError(() => new Error(errorMsg));
         })
       );
