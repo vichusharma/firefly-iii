@@ -36,18 +36,18 @@ export class AuthService {
   }
 
   /**
-   * Login with credentials (Session-based)
+   * Login with credentials (Session-based using form submission)
+   * Firefly III uses traditional form-based login with CSRF tokens
    */
   login(email: string, password: string): Observable<AuthResponse> {
+    // Create form data for traditional form submission
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+
     return this.http
-      .post<any>(`${this.apiUrl}/login`, {
-        email: email,
-        password: password,
-      }, { 
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      .post<any>(`${this.apiUrl}/login`, formData, { 
+        withCredentials: true
       })
       .pipe(
         tap((response) => {
@@ -68,7 +68,7 @@ export class AuthService {
         }),
         catchError((error) => {
           console.error('Login failed', error);
-          let errorMsg = 'Login failed';
+          let errorMsg = 'Login failed. Please check your credentials.';
           
           // Try to extract error message from various response formats
           if (error.error?.message) {
@@ -79,6 +79,10 @@ export class AuthService {
             errorMsg = error.error.errors.password[0];
           } else if (typeof error.error === 'string') {
             errorMsg = error.error;
+          } else if (error.status === 419) {
+            errorMsg = 'Session expired. Please refresh and try again.';
+          } else if (error.status === 422) {
+            errorMsg = 'Invalid email or password.';
           }
           
           return throwError(() => new Error(errorMsg));
@@ -148,7 +152,7 @@ export class AuthService {
    */
   isTokenExpired(): boolean {
     // Session-based auth doesn't have expiry in localStorage
-    // Server will return 401 if session is invalid
+    // Server will return 401/419 if session is invalid
     return false;
   }
 }
