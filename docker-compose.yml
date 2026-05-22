@@ -1,4 +1,5 @@
-# Updated Docker Compose with Angular Frontend Services
+# Firefly III with Integrated Angular Frontend
+# Everything in a single container - no CORS issues!
 
 version: '3.8'
 
@@ -24,12 +25,14 @@ services:
       timeout: 5s
       retries: 5
 
-  # Firefly III Backend (API Only - No UI)
+  # Firefly III Backend + Angular Frontend (Unified Container)
   firefly-app:
-    image: fireflyiii/core:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.unified
     restart: unless-stopped
     ports:
-      - "8081:8080"  # Changed to 8081 for backend API access
+      - "8080:8080"  # Single unified port
     depends_on:
       firefly-db:
         condition: service_healthy
@@ -39,12 +42,9 @@ services:
       APP_DEBUG: "false"
       APP_KEY: "base64:8iMI/7OVoJHlflCPwXKXMLm5Aq4v1qp4HZ0H9VT0qPY="
       
-      # URLs (point to Angular frontend)
-      APP_URL: "http://localhost:80"
+      # URLs
+      APP_URL: "http://localhost:8080"
       TRUSTED_PROXIES: "**"
-      
-      # CORS Configuration - Allow Angular frontend
-      CORS_ALLOWED_ORIGINS: "http://localhost:4200,http://localhost"
       
       # Database
       DB_CONNECTION: "mysql"
@@ -73,51 +73,6 @@ services:
       timeout: 10s
       retries: 5
 
-  # ========== ANGULAR FRONTEND DEVELOPMENT ==========
-  # Development Service (Hot-Reload)
-  firefly-ui-dev:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.angular.dev
-    volumes:
-      - ./resources/angular/src:/app/src                    # Source code volume
-      - ./resources/angular/package.json:/app/package.json  # Keep package.json synced
-      - angular-node-modules:/app/node_modules              # Cache node_modules
-    ports:
-      - "4200:4200"  # Angular dev server
-    depends_on:
-      - firefly-app
-    networks:
-      - firefly-network
-    environment:
-      - NODE_ENV=development
-      - API_URL=http://firefly-app:8080
-    command: ng serve --host 0.0.0.0 --port 4200 --poll 2000 --disable-host-check --proxy-config proxy.conf.json
-    # Only use for development
-    # Comment out below and run docker-compose up to enable
-    # For production, use firefly-ui service instead
-
-  # ========== ANGULAR FRONTEND PRODUCTION ==========
-  # Production Service (Nginx)
-  firefly-ui:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.angular
-    ports:
-      - "80:80"  # Main frontend on port 80
-    depends_on:
-      - firefly-app
-    networks:
-      - firefly-network
-    # Production build - only enable when ready for deployment
-    profiles:
-      - prod  # Run with: docker-compose --profile prod up
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   # Data Importer
   firefly-importer:
     image: fireflyiii/data-importer:latest
@@ -134,7 +89,7 @@ services:
       # Firefly III API settings
       FIREFLY_III_URL: "http://firefly-app:8080"
       FIREFLY_III_ACCESS_TOKEN: ""
-      VANITY_URL: "http://localhost"
+      VANITY_URL: "http://localhost:8080"
       
       # File upload settings
       CAN_POST_FILES: "true"
@@ -143,24 +98,18 @@ services:
       # Mail
       MAIL_MAILER: "log"
       
-      # Locale
-      FALLBACK_LOCALE: "en_US"
-      
-    volumes:
-      - firefly-importer:/var/www/html/storage/upload
     networks:
       - firefly-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 60s
 
 volumes:
   firefly-db:
   firefly-app:
-  firefly-importer:
-  angular-node-modules:  # Cache for node_modules in dev
 
 networks:
   firefly-network:
