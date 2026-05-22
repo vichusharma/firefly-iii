@@ -36,17 +36,34 @@ export class AuthService {
   }
 
   /**
-   * Extract CSRF token from login form HTML
+   * Get CSRF token from meta tag or form HTML
+   * Firefly III stores CSRF token in <meta name="csrf-token"> tag
    */
-  private extractCsrfToken(html: string): string {
+  private getCsrfTokenFromMeta(): string {
+    const metaElement = document.querySelector('meta[name="csrf-token"]');
+    if (metaElement) {
+      const token = metaElement.getAttribute('content');
+      if (token) {
+        return token;
+      }
+    }
+    return '';
+  }
+
+  /**
+   * Extract CSRF token from HTML form  
+   * Fallback if token is not in meta tag
+   */
+  private extractCsrfTokenFromHtml(html: string): string {
+    // Look for _token input field
     const match = html.match(/<input[^>]*name=["\']_token["\'][^>]*value=["\']([^"\']+)["\']/i);
     if (match && match[1]) {
       return match[1];
     }
-    // Fallback: try another common pattern
-    const match2 = html.match(/value="([^"]*)"[^>]*name="_token"/i);
-    if (match2 && match2[1]) {
-      return match2[1];
+    // Look for csrf-token meta tag in HTML
+    const metaMatch = html.match(/<meta[^>]*name=["\']csrf-token["\'][^>]*content=["\']([^"\']+)["\']/i);
+    if (metaMatch && metaMatch[1]) {
+      return metaMatch[1];
     }
     return '';
   }
@@ -56,35 +73,55 @@ export class AuthService {
    * Firefly III uses traditional form-based login with CSRF tokens
    * 
    * Flow:
-   * 1. GET /login to fetch the login form and extract CSRF token
-   * 2. POST /login with email, password, and _token in form data
-   * 3. Server sets firefly_iii_session cookie if credentials are valid
+   * 1. Try to get CSRF token from DOM meta tag
+   * 2. If not in DOM, GET /login to fetch form and extract token from HTML
+   * 3. POST /login with email, password, and _token in form data
+   * 4. Server sets firefly_iii_session cookie if credentials are valid
    */
   login(email: string, password: string): Observable<AuthResponse> {
-    // First, fetch the login form to get the CSRF token
+    // First try to get CSRF token from the current page's meta tag
+    let csrfToken = this.getCsrfTokenFromMeta();
+
+    // If token not in DOM, fetch the login form to get it
+    if (!csrfToken) {
+      return this.http
+        .get(`${this.apiUrl}/login`, { 
+          responseType: 'text',
+          withCredentials: true 
+        })
+        .pipe(
+          switchMap((html: string) => {
+            csrfToken = this.extractCsrfTokenFromHtml(html);
+            return this.submitLogin(email, password, csrfToken);
+          }),
+          catchError((error) => {
+            console.error('Failed to fetch login form', error);
+            // Try login without token as last resort
+            return this.submitLogin(email, password, '');
+          })
+        );
+    }
+
+    // Token already available in DOM, submit directly
+    return this.submitLogin(email, password, csrfToken);
+  }
+
+  /**
+   * Submit login form with credentials and CSRF token
+   */
+  private submitLogin(email: string, password: string, csrfToken: string): Observable<AuthResponse> {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    if (csrfToken) {
+      formData.append('_token', csrfToken);
+    }
+
     return this.http
-      .get(`${this.apiUrl}/login`, { 
-        responseType: 'text',
-        withCredentials: true 
+      .post<any>(`${this.apiUrl}/login`, formData, { 
+        withCredentials: true
       })
       .pipe(
-        switchMap((html: string) => {
-          // Extract CSRF token from the login form HTML
-          const csrfToken = this.extractCsrfToken(html);
-          
-          // Create form data with credentials and CSRF token
-          const formData = new FormData();
-          formData.append('email', email);
-          formData.append('password', password);
-          if (csrfToken) {
-            formData.append('_token', csrfToken);
-          }
-          
-          // Submit login form
-          return this.http.post<any>(`${this.apiUrl}/login`, formData, { 
-            withCredentials: true
-          });
-        }),
         tap((response) => {
           // For session-based auth, we store a token to track if user is authenticated
           localStorage.setItem('firefly_token', 'session');
