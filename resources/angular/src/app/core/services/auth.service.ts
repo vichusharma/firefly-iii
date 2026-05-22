@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { map, tap, catchError } from 'rxjs/operators';
+import { map, tap, catchError, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { User, AuthResponse } from '@shared/models';
 
@@ -36,20 +36,55 @@ export class AuthService {
   }
 
   /**
+   * Extract CSRF token from login form HTML
+   */
+  private extractCsrfToken(html: string): string {
+    const match = html.match(/<input[^>]*name=["\']_token["\'][^>]*value=["\']([^"\']+)["\']/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    // Fallback: try another common pattern
+    const match2 = html.match(/value="([^"]*)"[^>]*name="_token"/i);
+    if (match2 && match2[1]) {
+      return match2[1];
+    }
+    return '';
+  }
+
+  /**
    * Login with credentials (Session-based using form submission)
    * Firefly III uses traditional form-based login with CSRF tokens
+   * 
+   * Flow:
+   * 1. GET /login to fetch the login form and extract CSRF token
+   * 2. POST /login with email, password, and _token in form data
+   * 3. Server sets firefly_iii_session cookie if credentials are valid
    */
   login(email: string, password: string): Observable<AuthResponse> {
-    // Create form data for traditional form submission
-    const formData = new FormData();
-    formData.append('email', email);
-    formData.append('password', password);
-
+    // First, fetch the login form to get the CSRF token
     return this.http
-      .post<any>(`${this.apiUrl}/login`, formData, { 
-        withCredentials: true
+      .get(`${this.apiUrl}/login`, { 
+        responseType: 'text',
+        withCredentials: true 
       })
       .pipe(
+        switchMap((html: string) => {
+          // Extract CSRF token from the login form HTML
+          const csrfToken = this.extractCsrfToken(html);
+          
+          // Create form data with credentials and CSRF token
+          const formData = new FormData();
+          formData.append('email', email);
+          formData.append('password', password);
+          if (csrfToken) {
+            formData.append('_token', csrfToken);
+          }
+          
+          // Submit login form
+          return this.http.post<any>(`${this.apiUrl}/login`, formData, { 
+            withCredentials: true
+          });
+        }),
         tap((response) => {
           // For session-based auth, we store a token to track if user is authenticated
           localStorage.setItem('firefly_token', 'session');
