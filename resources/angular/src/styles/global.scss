@@ -19,68 +19,78 @@ body {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
-  background-color: #fff;
-  color: #000;
+  background-color: #1e293b;
+  color: #e2e8f0;
 }
 
-// Dark theme
+// Dark theme (default)
 .dark-theme {
-  background-color: #121212;
-  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #e2e8f0;
 }
 
+// Material 3 Typography Styles
 .display-medium {
   font-size: $md-display-medium-size;
   line-height: $md-display-medium-line;
   font-weight: $md-display-medium-weight;
+  color: #f1f5f9;
 }
 
 .headline-large {
   font-size: $md-headline-large-size;
   line-height: $md-headline-large-line;
   font-weight: $md-headline-large-weight;
+  color: #f8fafc;
 }
 
 .headline-medium {
   font-size: $md-headline-medium-size;
   line-height: $md-headline-medium-line;
   font-weight: $md-headline-medium-weight;
+  color: #f8fafc;
 }
 
 .title-large {
   font-size: $md-title-large-size;
   line-height: $md-title-large-line;
   font-weight: $md-title-large-weight;
+  color: #e2e8f0;
 }
 
 .title-medium {
   font-size: $md-title-medium-size;
   line-height: $md-title-medium-line;
   font-weight: $md-title-medium-weight;
+  color: #cbd5e1;
 }
 
 .body-large {
   font-size: $md-body-large-size;
   line-height: $md-body-large-line;
   font-weight: $md-body-large-weight;
+  color: #cbd5e1;
 }
 
 .body-medium {
   font-size: $md-body-medium-size;
   line-height: $md-body-medium-line;
   font-weight: $md-body-medium-weight;
+  color: #94a3b8;
 }
 
 .body-small {
   font-size: $md-body-small-size;
   line-height: $md-body-small-line;
   font-weight: $md-body-small-weight;
+  color: #78909c;
 }
 
 .label-large {
   font-size: $md-label-large-size;
   line-height: $md-label-large-line;
   font-weight: $md-label-large-weight;
+  color: #94a3b8;
 }
 
 // Spacing utilities
@@ -141,6 +151,8 @@ app-root {
   border-radius: $md-border-radius-md;
   padding: $md-spacing-md;
   box-shadow: $md-elevation-1;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .button-group {
@@ -154,4 +166,45 @@ app-root {
   justify-content: center;
   align-items: center;
   min-height: 200px;
+}
+
+// Gradient utilities
+.gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+// Smooth transitions
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
