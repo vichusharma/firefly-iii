@@ -202,31 +202,48 @@ import { AuthService } from '@core/services/auth.service';
 
     mat-form-field {
       display: block;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       width: 100%;
     }
 
     .input-field {
-      margin-bottom: 1.5rem !important;
+      margin-bottom: 2rem !important;
     }
 
     ::ng-deep .mat-mdc-form-field {
       width: 100%;
+      display: block;
+    }
+
+    ::ng-deep .mdc-text-field {
+      background-color: transparent !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field-label-wrapper {
+      top: 0 !important;
     }
 
     ::ng-deep .mat-mdc-form-field-label {
+      top: 1.25rem !important;
+      left: 0 !important;
       color: #94a3b8 !important;
-      font-size: 0.95rem;
-      top: 20px !important;
+      font-size: 1rem !important;
     }
 
     ::ng-deep .mat-mdc-form-field.mat-focused .mat-mdc-form-field-label,
-    ::ng-deep .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-label {
-      top: -6px !important;
+    ::ng-deep .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-form-field-label,
+    ::ng-deep .mdc-text-field--filled.mdc-text-field--with-internal-counter .mdc-text-field__input ~ .mdc-floating-label {
+      transform: translateY(-1.5rem) scale(0.85) !important;
+      top: 2rem !important;
     }
 
-    ::ng-deep .mat-mdc-text-field-wrapper {
-      padding-bottom: 0;
+    ::ng-deep .mdc-text-field--filled .mdc-floating-label {
+      top: 1.25rem !important;
+    }
+
+    ::ng-deep .mdc-text-field--filled.mdc-text-field--focused .mdc-floating-label,
+    ::ng-deep .mdc-text-field--filled.mdc-text-field--invalid .mdc-floating-label {
+      top: 2rem !important;
     }
 
     ::ng-deep .mdc-notched-outline__leading,
@@ -252,17 +269,30 @@ import { AuthService } from '@core/services/auth.service';
     ::ng-deep .mat-mdc-form-field input {
       background: transparent;
       color: #e2e8f0;
-      padding: 12px 16px !important;
+      padding: 1rem 1rem 0.75rem 1rem !important;
+      min-height: 3rem;
     }
 
     ::ng-deep .mat-mdc-form-field input::placeholder {
       color: #64748b;
-      opacity: 0.7;
+      opacity: 0;
     }
 
     ::ng-deep .mat-mdc-form-field-error {
       font-size: 0.75rem;
       color: #fca5a5;
+    }
+
+    ::ng-deep .mdc-text-field--outlined {
+      background-color: transparent !important;
+    }
+
+    ::ng-deep .mdc-text-field--outlined .mdc-text-field__input {
+      padding: 1rem 1rem 0.75rem 1rem;
+    }
+
+    ::ng-deep .mdc-text-field--outlined.mdc-text-field--with-leading-icon .mdc-text-field__input {
+      padding-left: 1rem;
     }
 
     .remember-checkbox {
