@@ -9,7 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 
 @Component({
@@ -25,6 +25,7 @@ import { AuthService } from '@core/services/auth.service';
     MatProgressSpinnerModule,
     MatCheckboxModule,
     MatIconModule,
+    RouterModule,
   ],
   template: `
     <div class="login-container">
@@ -86,6 +87,9 @@ import { AuthService } from '@core/services/auth.service';
 
           <div class="signin-footer">
             <p>Enter your credentials to access your financial dashboard</p>
+            <div class="register-link">
+              <span>Don't have an account? <a routerLink="/register">Register here</a></span>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>
@@ -351,6 +355,30 @@ import { AuthService } from '@core/services/auth.service';
       font-size: 0.8rem;
       color: #64748b;
       margin: 0;
+    }
+
+    .register-link {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .register-link span {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+
+    .register-link a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-weight: 600;
+      margin-left: 0.25rem;
+      transition: color 0.3s ease;
+    }
+
+    .register-link a:hover {
+      color: #06b6d4;
+      text-decoration: underline;
     }
   `],
 })
