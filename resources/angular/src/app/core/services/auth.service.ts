@@ -163,6 +163,95 @@ export class AuthService {
   }
 
   /**
+   * Register new user
+   * Similar to login, requires CSRF token and form submission
+   */
+  register(email: string, password: string): Observable<AuthResponse> {
+    // First try to get CSRF token from the current page's meta tag
+    let csrfToken = this.getCsrfTokenFromMeta();
+
+    // If token not in DOM, fetch the register form to get it
+    if (!csrfToken) {
+      return this.http
+        .get(`${this.apiUrl}/register`, { 
+          responseType: 'text',
+          withCredentials: true 
+        })
+        .pipe(
+          switchMap((html: string) => {
+            csrfToken = this.extractCsrfTokenFromHtml(html);
+            return this.submitRegister(email, password, csrfToken);
+          }),
+          catchError((error) => {
+            console.error('Failed to fetch register form', error);
+            // Try register without token as last resort
+            return this.submitRegister(email, password, '');
+          })
+        );
+    }
+
+    // Token already available in DOM, submit directly
+    return this.submitRegister(email, password, csrfToken);
+  }
+
+  /**
+   * Submit registration form with credentials and CSRF token
+   */
+  private submitRegister(email: string, password: string, csrfToken: string): Observable<AuthResponse> {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('password_confirmation', password);
+    if (csrfToken) {
+      formData.append('_token', csrfToken);
+    }
+
+    return this.http
+      .post<any>(`${this.apiUrl}/register`, formData, { 
+        withCredentials: true
+      })
+      .pipe(
+        tap((response) => {
+          // For session-based auth, we store a token to track if user is authenticated
+          localStorage.setItem('firefly_token', 'session');
+          localStorage.setItem('firefly_user', JSON.stringify({
+            id: (response.user?.id || 1).toString(),
+            email: email,
+            name: response.user?.name || 'User',
+            role: 'user' as const,
+          }));
+          this.currentUserSubject.next({
+            id: (response.user?.id || 1).toString(),
+            email: email,
+            name: response.user?.name || 'User',
+            role: 'user' as const,
+          });
+        }),
+        catchError((error) => {
+          console.error('Registration failed', error);
+          let errorMsg = 'Registration failed. Please try again.';
+          
+          // Try to extract error message from various response formats
+          if (error.error?.message) {
+            errorMsg = error.error.message;
+          } else if (error.error?.errors?.email?.[0]) {
+            errorMsg = error.error.errors.email[0];
+          } else if (error.error?.errors?.password?.[0]) {
+            errorMsg = error.error.errors.password[0];
+          } else if (typeof error.error === 'string') {
+            errorMsg = error.error;
+          } else if (error.status === 419) {
+            errorMsg = 'Session expired. Please refresh and try again.';
+          } else if (error.status === 422) {
+            errorMsg = 'Email already exists or invalid input.';
+          }
+          
+          return throwError(() => new Error(errorMsg));
+        })
+      );
+  }
+
+  /**
    * Logout user
    */
   logout(): Observable<any> {
