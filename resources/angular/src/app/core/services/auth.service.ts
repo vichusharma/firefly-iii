@@ -36,23 +36,35 @@ export class AuthService {
   }
 
   /**
-   * Login with credentials
+   * Login with credentials (Session-based)
    */
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/oauth/token`, {
-        client_id: 'firefly-ui',
-        client_secret: 'your-secret',
-        grant_type: 'password',
-        username: email,
+      .post<any>(`${this.apiUrl}/login`, {
+        email: email,
         password: password,
-        scope: '*',
-      })
+      }, { withCredentials: true })
       .pipe(
-        tap((response) => this.handleAuthResponse(response)),
+        tap((response) => {
+          // For session-based auth, we store a token to track if user is authenticated
+          localStorage.setItem('firefly_token', 'session');
+          localStorage.setItem('firefly_user', JSON.stringify({
+            id: (response.user?.id || 1).toString(),
+            email: email,
+            name: response.user?.name || 'User',
+            role: 'user' as const,
+          }));
+          this.currentUserSubject.next({
+            id: (response.user?.id || 1).toString(),
+            email: email,
+            name: response.user?.name || 'User',
+            role: 'user' as const,
+          });
+        }),
         catchError((error) => {
           console.error('Login failed', error);
-          return throwError(() => new Error('Login failed'));
+          const errorMsg = error.error?.message || error.error?.errors?.email?.[0] || 'Login failed';
+          return throwError(() => new Error(errorMsg));
         })
       );
   }
@@ -60,34 +72,41 @@ export class AuthService {
   /**
    * Logout user
    */
-  logout(): void {
-    localStorage.removeItem('firefly_token');
-    localStorage.removeItem('firefly_user');
-    this.currentUserSubject.next(null);
+  logout(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
+      .pipe(
+        tap(() => {
+          localStorage.removeItem('firefly_token');
+          localStorage.removeItem('firefly_user');
+          this.currentUserSubject.next(null);
+        }),
+        catchError(() => {
+          // Even if logout fails, clear local data
+          localStorage.removeItem('firefly_token');
+          localStorage.removeItem('firefly_user');
+          this.currentUserSubject.next(null);
+          return new Observable(observer => observer.complete());
+        })
+      );
   }
 
   /**
-   * Refresh access token
+   * Check if user is authenticated (verify with backend)
    */
-  refreshToken(): Observable<AuthResponse> {
-    const refreshToken = localStorage.getItem('firefly_refresh_token');
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
-    }
-
+  checkAuth(): Observable<boolean> {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/oauth/token`, {
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: 'firefly-ui',
-        client_secret: 'your-secret',
-        scope: '*',
-      })
+      .get<any>(`${this.apiUrl}/api/v1/about`, { withCredentials: true })
       .pipe(
-        tap((response) => this.handleAuthResponse(response)),
-        catchError((error) => {
-          this.logout();
-          return throwError(() => new Error('Token refresh failed'));
+        tap(() => {
+          // User is authenticated
+          localStorage.setItem('firefly_token', 'session');
+        }),
+        map(() => true),
+        catchError(() => {
+          // User is not authenticated
+          localStorage.removeItem('firefly_token');
+          this.currentUserSubject.next(null);
+          return throwError(() => new Error('Not authenticated'));
         })
       );
   }
@@ -100,30 +119,6 @@ export class AuthService {
   }
 
   /**
-   * Get stored refresh token
-   */
-  getRefreshToken(): string | null {
-    return localStorage.getItem('firefly_refresh_token');
-  }
-
-  /**
-   * Handle authentication response
-   */
-  private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem('firefly_token', response.access_token);
-    localStorage.setItem('firefly_token_type', response.token_type);
-    localStorage.setItem(
-      'firefly_token_expires',
-      (Date.now() + response.expires_in * 1000).toString()
-    );
-
-    if (response.user) {
-      localStorage.setItem('firefly_user', JSON.stringify(response.user));
-      this.currentUserSubject.next(response.user);
-    }
-  }
-
-  /**
    * Get user from local storage
    */
   private getUserFromStorage(): User | null {
@@ -132,11 +127,11 @@ export class AuthService {
   }
 
   /**
-   * Check if token is expired
+   * Check if token is expired (session-based, so always false)
    */
   isTokenExpired(): boolean {
-    const expiryTime = localStorage.getItem('firefly_token_expires');
-    if (!expiryTime) return true;
-    return Date.now() > parseInt(expiryTime);
+    // Session-based auth doesn't have expiry in localStorage
+    // Server will return 401 if session is invalid
+    return false;
   }
 }

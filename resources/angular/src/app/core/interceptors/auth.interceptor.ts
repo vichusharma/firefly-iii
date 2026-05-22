@@ -17,9 +17,14 @@ export class AuthInterceptor implements HttpInterceptor {
     request: HttpRequest<unknown>,
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
-    const token = this.authService.getToken();
+    // Enable credentials (cookies) for all requests
+    request = request.clone({
+      withCredentials: true,
+    });
 
-    if (token) {
+    // Add token if available (for API requests that require it)
+    const token = this.authService.getToken();
+    if (token && token !== 'session') {
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,

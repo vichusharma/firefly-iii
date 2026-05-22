@@ -384,10 +384,13 @@ export class LoginComponent implements OnInit {
 
     const { email, password } = this.loginForm.value;
     this.authService.login(email, password).subscribe({
-      next: () => this.router.navigate(['/dashboard']),
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/dashboard']);
+      },
       error: (error) => {
         this.isLoading = false;
-        this.error = error.message || 'Login failed. Please try again.';
+        this.error = error.message || 'Login failed. Please check your credentials.';
       },
     });
   }

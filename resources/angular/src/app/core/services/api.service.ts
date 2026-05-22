@@ -35,6 +35,7 @@ export class ApiService {
     }
     return this.http.get<ApiResponse<T>>(this.buildUrl(endpoint), {
       params: httpParams,
+      withCredentials: true,
     });
   }
 
@@ -42,27 +43,35 @@ export class ApiService {
    * Generic POST request
    */
   post<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
-    return this.http.post<ApiResponse<T>>(this.buildUrl(endpoint), body);
+    return this.http.post<ApiResponse<T>>(this.buildUrl(endpoint), body, {
+      withCredentials: true,
+    });
   }
 
   /**
    * Generic PUT request
    */
   put<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
-    return this.http.put<ApiResponse<T>>(this.buildUrl(endpoint), body);
+    return this.http.put<ApiResponse<T>>(this.buildUrl(endpoint), body, {
+      withCredentials: true,
+    });
   }
 
   /**
    * Generic DELETE request
    */
   delete<T>(endpoint: string): Observable<ApiResponse<T>> {
-    return this.http.delete<ApiResponse<T>>(this.buildUrl(endpoint));
+    return this.http.delete<ApiResponse<T>>(this.buildUrl(endpoint), {
+      withCredentials: true,
+    });
   }
 
   /**
    * Generic PATCH request
    */
   patch<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
-    return this.http.patch<ApiResponse<T>>(this.buildUrl(endpoint), body);
+    return this.http.patch<ApiResponse<T>>(this.buildUrl(endpoint), body, {
+      withCredentials: true,
+    });
   }
 }
