@@ -1,0 +1,1 @@
+{"ast":null,"code":"export const routes = [{\n  path: '',\n  title: 'Tags',\n  loadComponent: () => import('./tags-list/tags-list.component').then(m => m.TagsListComponent)\n}];","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

@@ -6,11 +6,26 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '@core/services/api.service';
+
+interface AccountOption {
+  id: string;
+  name: string;
+  type?: string;
+}
+
+interface CategoryOption {
+  id: string;
+  name: string;
+}
+
+interface BudgetOption {
+  id: string;
+  name: string;
+}
 
 @Component({
   selector: 'app-transaction-create-dialog',
@@ -23,7 +38,6 @@ import { ApiService } from '@core/services/api.service';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatCardModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
@@ -32,138 +46,178 @@ import { ApiService } from '@core/services/api.service';
     <div class="dialog-wrapper">
       <div class="dialog-header">
         <h2>Create New Transaction</h2>
-        <button mat-icon-button (click)="dialogRef.close()" class="close-btn">
+        <button mat-icon-button (click)="dialogRef.close()" class="close-btn" type="button">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="dialog-form">
         <div class="form-content">
-          <!-- Transaction Type (auto-derived from accounts) -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Transaction Type</mat-label>
-            <mat-select formControlName="type">
-              <mat-option value="transfer">Transfer</mat-option>
-              <mat-option value="withdrawal">Withdrawal (Expense)</mat-option>
-              <mat-option value="deposit">Deposit (Income)</mat-option>
-            </mat-select>
-            <mat-hint>Select the type of transaction</mat-hint>
-          </mat-form-field>
+          <fieldset class="form-section">
+            <legend class="form-section-title">Basic transaction information</legend>
 
-          <!-- Date -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Transaction Date</mat-label>
-            <input matInput [matDatepicker]="datePicker" formControlName="date" required />
-            <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
-            <mat-datepicker #datePicker></mat-datepicker>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Transaction type</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Transaction type</mat-label>
+                  <mat-select formControlName="type" (selectionChange)="onTypeChange()">
+                    <mat-option value="transfer">Transfer</mat-option>
+                    <mat-option value="withdrawal">Withdrawal</mat-option>
+                    <mat-option value="deposit">Deposit</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Source Account -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>From Account</mat-label>
-            <mat-select formControlName="source_account_id" required>
-              <mat-option *ngFor="let account of accounts" [value]="account.id">
-                {{ account.name }} ({{ account.type }})
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="transactionForm.get('source_account_id')?.hasError('required')">
-              Source account is required
-            </mat-error>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Description</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Description</mat-label>
+                  <input matInput formControlName="description" placeholder="What happened?" required />
+                  <mat-error *ngIf="transactionForm.get('description')?.hasError('required')">
+                    A description is required.
+                  </mat-error>
+                  <mat-error *ngIf="transactionForm.get('description')?.hasError('maxlength')">
+                    Description must be 1000 characters or less.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Destination Account -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>To Account</mat-label>
-            <mat-select formControlName="destination_account_id" required>
-              <mat-option *ngFor="let account of accounts" [value]="account.id">
-                {{ account.name }} ({{ account.type }})
-              </mat-option>
-            </mat-select>
-            <mat-error *ngIf="transactionForm.get('destination_account_id')?.hasError('required')">
-              Destination account is required
-            </mat-error>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">{{ isTransfer ? 'Accounts' : (showSourceAccount ? 'From account' : 'To account') }}</div>
+              <div class="form-control-group">
+                <div class="form-field-grid" [class.columns-2]="isTransfer">
+                  <mat-form-field appearance="outline" class="dialog-form-field" *ngIf="showSourceAccount">
+                    <mat-label>From account</mat-label>
+                    <mat-select formControlName="source_account_id">
+                      <mat-option *ngFor="let account of accounts" [value]="account.id">
+                        {{ account.name }}<span *ngIf="account.type"> ({{ account.type }})</span>
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="transactionForm.get('source_account_id')?.hasError('required')">
+                      From account is required.
+                    </mat-error>
+                  </mat-form-field>
 
-          <!-- Amount -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Amount</mat-label>
-            <input
-              matInput
-              formControlName="amount"
-              type="number"
-              step="0.01"
-              required
-              placeholder="0.00"
-            />
-            <mat-error *ngIf="transactionForm.get('amount')?.hasError('required')">
-              Amount is required
-            </mat-error>
-          </mat-form-field>
+                  <mat-form-field appearance="outline" class="dialog-form-field" *ngIf="showDestinationAccount">
+                    <mat-label>To account</mat-label>
+                    <mat-select formControlName="destination_account_id">
+                      <mat-option *ngFor="let account of accounts" [value]="account.id">
+                        {{ account.name }}<span *ngIf="account.type"> ({{ account.type }})</span>
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="transactionForm.get('destination_account_id')?.hasError('required')">
+                      To account is required.
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
 
-          <!-- Description -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Description</mat-label>
-            <input
-              matInput
-              formControlName="description"
-              placeholder="Transaction details (optional)"
-            />
-            <mat-hint>Optional description for this transaction</mat-hint>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Date and amount</div>
+              <div class="form-control-group">
+                <div class="form-field-grid">
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Date</mat-label>
+                    <input matInput [matDatepicker]="datePicker" formControlName="date" required />
+                    <mat-datepicker-toggle matSuffix [for]="datePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #datePicker></mat-datepicker>
+                    <mat-error *ngIf="transactionForm.get('date')?.hasError('required')">
+                      Date is required.
+                    </mat-error>
+                  </mat-form-field>
 
-          <!-- Category -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Category</mat-label>
-            <mat-select formControlName="category_id">
-              <mat-option value="">No category</mat-option>
-              <mat-option *ngFor="let cat of categories" [value]="cat.id">
-                {{ cat.name }}
-              </mat-option>
-            </mat-select>
-            <mat-hint>Optional category</mat-hint>
-          </mat-form-field>
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Amount</mat-label>
+                    <input matInput formControlName="amount" type="number" step="0.01" required />
+                    <mat-error *ngIf="transactionForm.get('amount')?.hasError('required')">
+                      Amount is required.
+                    </mat-error>
+                    <mat-error *ngIf="transactionForm.get('amount')?.hasError('min')">
+                      Amount must be greater than zero.
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </fieldset>
 
-          <!-- Budget -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Budget</mat-label>
-            <mat-select formControlName="budget_id">
-              <mat-option value="">No budget</mat-option>
-              <mat-option *ngFor="let budget of budgets" [value]="budget.id">
-                {{ budget.name }}
-              </mat-option>
-            </mat-select>
-            <mat-hint>Optional budget</mat-hint>
-          </mat-form-field>
+          <fieldset class="form-section">
+            <legend class="form-section-title">Categorisation</legend>
 
-          <!-- Tags -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Tags</mat-label>
-            <input matInput formControlName="tags" placeholder="Comma-separated tags" />
-            <mat-hint>Optional tags for organization</mat-hint>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Category, budget and tags</div>
+              <div class="form-control-group">
+                <div class="form-field-grid columns-3">
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Category</mat-label>
+                    <mat-select formControlName="category_id">
+                      <mat-option value="">No category</mat-option>
+                      <mat-option *ngFor="let category of categories" [value]="category.id">
+                        {{ category.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
 
-          <!-- Notes -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Notes</mat-label>
-            <textarea
-              matInput
-              formControlName="notes"
-              placeholder="Additional notes (optional)"
-              rows="3"
-            ></textarea>
-          </mat-form-field>
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Budget</mat-label>
+                    <mat-select formControlName="budget_id">
+                      <mat-option value="">No budget</mat-option>
+                      <mat-option *ngFor="let budget of budgets" [value]="budget.id">
+                        {{ budget.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Tags</mat-label>
+                    <input matInput formControlName="tags" placeholder="Comma-separated tags" />
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <details class="optional-section">
+            <summary class="optional-toggle">Optional details</summary>
+            <div class="optional-body">
+              <div class="form-row">
+                <div class="form-label">Notes</div>
+                <div class="form-control-group">
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Notes</mat-label>
+                    <textarea matInput formControlName="notes" rows="4" placeholder="Additional notes"></textarea>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-label">References</div>
+                <div class="form-control-group">
+                  <div class="form-field-grid">
+                    <mat-form-field appearance="outline" class="dialog-form-field">
+                      <mat-label>External URL</mat-label>
+                      <input matInput formControlName="external_url" type="url" placeholder="https://example.com" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="dialog-form-field">
+                      <mat-label>Internal reference</mat-label>
+                      <input matInput formControlName="internal_reference" placeholder="Optional reference" />
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
 
         <div class="dialog-actions">
-          <button mat-button (click)="dialogRef.close()" type="button">
-            Cancel
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            [disabled]="!transactionForm.valid || isSubmitting"
-          >
+          <button mat-button (click)="dialogRef.close()" type="button">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
             {{ isSubmitting ? 'Creating...' : 'Create Transaction' }}
           </button>
         </div>
@@ -206,60 +260,53 @@ import { ApiService } from '@core/services/api.service';
       margin-left: 1rem;
     }
 
-    form {
+    .dialog-form {
       display: flex;
       flex-direction: column;
-      height: fit-content;
-      overflow: hidden;
+      min-height: 0;
     }
 
     .form-content {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      padding: 1.5rem;
+      gap: 0.75rem;
+      padding: 1rem;
       overflow-y: auto;
-      height: fit-content;
-      width: 100%;
-      min-width: 0;
+      min-height: 0;
     }
 
-    .form-content::-webkit-scrollbar {
-      width: 8px;
+    legend.form-section-title {
+      padding: 0 0.5rem;
     }
 
-    .form-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
+    .optional-section {
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.2);
     }
 
-    .form-content::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
+    .optional-toggle {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem;
+      color: #e2e8f0;
+      font-weight: 600;
     }
 
-    mat-form-field {
-      width: 100%;
-      color: #cbd5e1;
-      display: block;
-      box-sizing: border-box;
+    .optional-toggle::-webkit-details-marker {
+      display: none;
     }
 
-    .full-width {
-      width: 100%;
-      display: block;
-      box-sizing: border-box;
+    .optional-body {
+      padding: 0 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
 
-    input[matInput],
-    textarea[matInput],
-    select {
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }
-
-    textarea {
-      color: #cbd5e1;
-      background: rgba(255, 255, 255, 0.05);
+    textarea[matInput] {
+      min-height: 96px;
+      resize: vertical;
     }
 
     .dialog-actions {
@@ -287,14 +334,24 @@ import { ApiService } from '@core/services/api.service';
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    @media (max-width: 768px) {
+      .dialog-actions {
+        flex-wrap: wrap;
+      }
+
+      .dialog-actions button {
+        flex: 1 1 auto;
+      }
+    }
   `],
 })
 export class TransactionCreateDialogComponent implements OnInit {
   transactionForm: FormGroup;
   isSubmitting = false;
-  accounts: any[] = [];
-  categories: any[] = [];
-  budgets: any[] = [];
+  accounts: AccountOption[] = [];
+  categories: CategoryOption[] = [];
+  budgets: BudgetOption[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -303,28 +360,43 @@ export class TransactionCreateDialogComponent implements OnInit {
   ) {
     this.transactionForm = this.fb.group({
       type: ['transfer', Validators.required],
-      date: [new Date().toISOString().split('T')[0], Validators.required],
-      source_account_id: ['', Validators.required],
-      destination_account_id: ['', Validators.required],
+      description: ['', [Validators.required, Validators.maxLength(1000)]],
+      date: [new Date(), Validators.required],
+      source_account_id: [''],
+      destination_account_id: [''],
       amount: ['', [Validators.required, Validators.min(0.01)]],
-      description: [''],
       category_id: [''],
       budget_id: [''],
       tags: [''],
       notes: [''],
+      internal_reference: [''],
+      external_url: [''],
     });
   }
 
+  get isTransfer(): boolean {
+    return this.transactionForm.get('type')?.value === 'transfer';
+  }
+
+  get showSourceAccount(): boolean {
+    return ['transfer', 'withdrawal'].includes(this.transactionForm.get('type')?.value);
+  }
+
+  get showDestinationAccount(): boolean {
+    return ['transfer', 'deposit'].includes(this.transactionForm.get('type')?.value);
+  }
+
   ngOnInit(): void {
+    this.onTypeChange();
     this.loadAccounts();
     this.loadCategories();
     this.loadBudgets();
   }
 
   loadAccounts(): void {
-    this.apiService.get<any>('accounts').subscribe({
+    this.apiService.get<any>('accounts', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.accounts = Array.isArray(response.data) ? response.data : response.data?.data || [];
+        this.accounts = this.normalizeCollection<AccountOption>(response);
       },
       error: (err) => {
         console.error('Error loading accounts:', err);
@@ -333,9 +405,9 @@ export class TransactionCreateDialogComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.apiService.get<any>('categories').subscribe({
+    this.apiService.get<any>('categories', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.categories = Array.isArray(response.data) ? response.data : response.data?.data || [];
+        this.categories = this.normalizeCollection<CategoryOption>(response);
       },
       error: (err) => {
         console.error('Error loading categories:', err);
@@ -344,9 +416,9 @@ export class TransactionCreateDialogComponent implements OnInit {
   }
 
   loadBudgets(): void {
-    this.apiService.get<any>('budgets').subscribe({
+    this.apiService.get<any>('budgets', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.budgets = Array.isArray(response.data) ? response.data : response.data?.data || [];
+        this.budgets = this.normalizeCollection<BudgetOption>(response);
       },
       error: (err) => {
         console.error('Error loading budgets:', err);
@@ -354,31 +426,67 @@ export class TransactionCreateDialogComponent implements OnInit {
     });
   }
 
+  onTypeChange(): void {
+    const type = this.transactionForm.get('type')?.value;
+    const sourceControl = this.transactionForm.get('source_account_id');
+    const destinationControl = this.transactionForm.get('destination_account_id');
+
+    sourceControl?.clearValidators();
+    destinationControl?.clearValidators();
+
+    if (type === 'transfer' || type === 'withdrawal') {
+      sourceControl?.setValidators([Validators.required]);
+    }
+
+    if (type === 'transfer' || type === 'deposit') {
+      destinationControl?.setValidators([Validators.required]);
+    }
+
+    sourceControl?.updateValueAndValidity({ emitEvent: false });
+    destinationControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
   onSubmit(): void {
     if (!this.transactionForm.valid) {
+      this.transactionForm.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
-    const formData = this.transactionForm.value;
-
-    // Format data for API
-    const payload = {
-      transactions: [
-        {
-          type: formData.type,
-          date: formData.date,
-          amount: formData.amount,
-          description: formData.description,
-          source_id: formData.source_account_id,
-          destination_id: formData.destination_account_id,
-          category_id: formData.category_id || null,
-          budget_id: formData.budget_id || null,
-          tags: formData.tags ? formData.tags.split(',').map((t: string) => t.trim()) : [],
-          notes: formData.notes,
-        },
-      ],
+    const formData = this.transactionForm.getRawValue();
+    const transaction: Record<string, any> = {
+      type: formData.type,
+      date: formData.date,
+      amount: formData.amount,
+      description: formData.description,
     };
+
+    if (this.showSourceAccount && formData.source_account_id) {
+      transaction['source_id'] = formData.source_account_id;
+    }
+    if (this.showDestinationAccount && formData.destination_account_id) {
+      transaction['destination_id'] = formData.destination_account_id;
+    }
+    if (formData.category_id) {
+      transaction['category_id'] = formData.category_id;
+    }
+    if (formData.budget_id) {
+      transaction['budget_id'] = formData.budget_id;
+    }
+    if (formData.tags) {
+      transaction['tags'] = formData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean);
+    }
+    if (formData.notes) {
+      transaction['notes'] = formData.notes;
+    }
+    if (formData.internal_reference) {
+      transaction['internal_reference'] = formData.internal_reference;
+    }
+    if (formData.external_url) {
+      transaction['external_url'] = formData.external_url;
+    }
+
+    const payload = { transactions: [transaction] };
 
     this.apiService.post('transactions', payload).subscribe({
       next: (response) => {
@@ -390,6 +498,22 @@ export class TransactionCreateDialogComponent implements OnInit {
         console.error('Error creating transaction:', err);
         alert('Error creating transaction: ' + (err.error?.message || err.message));
       },
+    });
+  }
+
+  private normalizeCollection<T extends Record<string, any>>(response: any): T[] {
+    const items = Array.isArray(response?.data)
+      ? response.data
+      : Array.isArray(response?.data?.data)
+        ? response.data.data
+        : [];
+
+    return items.map((item: any) => {
+      if (item?.attributes) {
+        return { id: item.id, ...item.attributes } as T;
+      }
+
+      return item as T;
     });
   }
 }

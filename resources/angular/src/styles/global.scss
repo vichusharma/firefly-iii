@@ -1,4 +1,3 @@
-// src/styles/global.scss
 @import 'variables';
 @import 'themes';
 
@@ -209,36 +208,33 @@ app-root {
   background: #64748b;
 }
 
-// Material Dialog styling for Firefly III - FIX SKEWING
-// Material Dialog creates multiple wrapper layers, we need to style them all
+// Material dialog styling
 .cdk-overlay-pane {
-  // The outer overlay pane
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  pointer-events: auto !important;
 }
 
 .firefly-dialog-container {
-  // Panel class applied to dialog config
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 0 !important;
   width: 100% !important;
-  
+
   .mat-mdc-dialog-container {
-    // Material's inner container
     padding: 0 !important;
     border-radius: 12px;
-    max-width: 100% !important;
-    width: 100% !important;
+    max-width: min(95vw, 820px) !important;
+    width: min(95vw, 820px) !important;
     height: auto !important;
     max-height: 90vh !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
   }
-  
+
   app-account-create-dialog,
   app-transaction-create-dialog,
   app-budget-create-dialog {
@@ -251,14 +247,6 @@ app-root {
   }
 }
 
-// CENTER THE DIALOG ON THE SCREEN - CRITICAL FIX
-// Material Dialog uses absolute positioning at 0,0 - override with transforms
-.cdk-overlay-pane {
-  // Ensure overlay doesn't mess with pointer events
-  pointer-events: auto !important;
-}
-
-// The dialog container needs to be centered using transforms
 .cdk-overlay-pane.firefly-dialog-container {
   position: fixed !important;
   top: 50% !important;
@@ -269,88 +257,184 @@ app-root {
   z-index: 1000 !important;
 }
 
-// Material's dialog container gets the centering treatment
-.firefly-dialog-container .mat-mdc-dialog-container {
-  position: static !important;
-  left: auto !important;
-  top: auto !important;
-  transform: none !important;
-  margin: 0 !important;
-  max-width: min(95vw, 700px) !important;
-  width: auto !important;
-}
-
-// Ensure dialog backdrop is properly positioned
 .cdk-overlay-backdrop {
   position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  inset: 0 !important;
   background: rgba(0, 0, 0, 0.5) !important;
   z-index: 999 !important;
 }
 
-// Allow pointer events on dialog content
 .cdk-overlay-pane > * {
   pointer-events: auto !important;
 }
 
-// Fix for Material Form Fields in dialogs - prevent shrinking
-.mat-mdc-form-field {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  display: block !important;
-  max-width: 100% !important;
+// Shared form dialog layout
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.35);
+  padding: 0.5rem;
+  margin: 0;
 }
 
-.mat-mdc-form-field-infix {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+.form-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
-// Fix input elements
-.mat-mdc-text-field-wrapper {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+.form-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 120px) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
 }
 
-.mdc-text-field {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+.form-label {
+  flex: 0 0 120px;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding-top: 0.75rem;
 }
 
-.mdc-text-field__input {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+.form-row-checkboxes .form-label {
+  padding-top: 0.25rem;
 }
 
-input.mat-mdc-input-element,
-textarea.mat-mdc-input-element,
-select.mat-mdc-input-element {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
+.form-control-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-// Fix mat-select
-.mat-mdc-select {
-  width: 100% !important;
-  box-sizing: border-box !important;
-  max-width: 100% !important;
-  display: block !important;
+.form-field-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
 }
 
-.mat-mdc-select-trigger {
-  width: 100% !important;
-  box-sizing: border-box !important;
+.form-field-grid > * {
+  flex: 1 1 calc(50% - 0.5rem);
+  min-width: 0;
 }
 
-// Global box-sizing for all form elements
-* {
+.form-field-grid.columns-3 > * {
+  flex: 1 1 calc(33.333% - 0.667rem);
+}
+
+.form-field-grid > .full-span {
+  flex-basis: 100%;
+}
+
+.form-field-grid > .field-compact {
+  flex: 0 0 150px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.checkbox-group mat-checkbox {
+  margin-right: 0.25rem;
+}
+
+.dialog-form-field,
+.form-control-group .mat-mdc-form-field {
+  width: 100%;
   box-sizing: border-box;
+}
+
+.mat-mdc-form-field {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mat-mdc-form-field-infix,
+.mat-mdc-text-field-wrapper,
+.mdc-text-field,
+.mdc-text-field__input,
+.mat-mdc-select,
+.mat-mdc-select-trigger {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  position: static;
+  width: 100%;
+}
+
+// Fix Material label floating and overlap
+.mdc-floating-label {
+  pointer-events: none;
+}
+
+.mat-mdc-form-field.mat-form-field-invalid .mdc-floating-label {
+  color: var(--mdc-theme-error, #f44336);
+}
+
+// Ensure select dropdown works properly
+.mat-mdc-select-panel {
+  max-height: 256px;
+}
+
+.mat-mdc-select-value {
+  color: currentColor;
+  opacity: 1;
+}
+
+// Fix form field gaps and spacing
+.form-section {
+  gap: 0.75rem !important;
+}
+
+.form-control-group {
+  gap: 0.5rem !important;
+}
+
+// Improve Material label display
+.mdc-floating-label--float-above {
+  transform: translateY(-1.15rem) scale(0.75) !important;
+}
+
+// Ensure form fields don't have extra padding
+.mat-mdc-form-field-hint-wrapper,
+.mat-mdc-form-field-error-wrapper {
+  padding: 0 0 0.25rem 0 !important;
+}
+
+@media (max-width: 768px) {
+  .firefly-dialog-container .mat-mdc-dialog-container {
+    width: min(calc(100vw - 1rem), 820px) !important;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .form-label {
+    flex-basis: auto;
+    padding-top: 0;
+  }
+
+  .form-field-grid > *,
+  .form-field-grid.columns-3 > *,
+  .form-field-grid > .field-compact,
+  .form-field-grid > .full-span {
+    flex-basis: 100%;
+  }
 }

@@ -29,6 +29,17 @@ if (!defined('DATEFORMAT')) {
     define('DATEFORMAT', '(19|20)[0-9]{2}-?[0-9]{2}-?[0-9]{2}');
 }
 
+// CSRF token endpoint for SPA (guest users)
+Route::get('/csrf-token', static function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+});
+
+// Registration endpoint for SPA (guest users)
+Route::post('/register', [\FireflyIII\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register');
+
+// Login endpoint for SPA (guest users)
+Route::post('/login', [\FireflyIII\Http\Controllers\Auth\LoginController::class, 'login'])->name('login');
+
 // new Passport routes.
 Route::group(
     [

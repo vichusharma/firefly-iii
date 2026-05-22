@@ -51,6 +51,30 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'bills',
+    loadChildren: () =>
+      import('./features/bills/bills.routes').then((m) => m.routes),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'tags',
+    loadChildren: () =>
+      import('./features/tags/tags.routes').then((m) => m.routes),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'rules',
+    loadChildren: () =>
+      import('./features/rules/rules.routes').then((m) => m.routes),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'importer',
+    loadChildren: () =>
+      import('./features/importer/importer.routes').then((m) => m.routes),
+    canActivate: [AuthGuard],
+  },
+  {
     path: '**',
     redirectTo: 'dashboard',
   },

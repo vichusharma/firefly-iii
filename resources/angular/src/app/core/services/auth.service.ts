@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { map, tap, catchError, switchMap } from 'rxjs/operators';
+import { map, tap, catchError, switchMap, delay } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { User, AuthResponse } from '@shared/models';
 
@@ -32,6 +32,13 @@ export class AuthService {
    * Check if user is authenticated
    */
   public get isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  /**
+   * Public method to check if logged in
+   */
+  isLoggedIn(): boolean {
     return !!this.getToken();
   }
 
@@ -73,41 +80,33 @@ export class AuthService {
    * Firefly III uses traditional form-based login with CSRF tokens
    * 
    * Flow:
-   * 1. Try to get CSRF token from DOM meta tag
-   * 2. If not in DOM, GET /login to fetch form and extract token from HTML
-   * 3. POST /login with email, password, and _token in form data
-   * 4. Server sets firefly_iii_session cookie if credentials are valid
+   * 1. GET /csrf-token endpoint to get a fresh CSRF token
+   * 2. POST /login with email, password, and _token in form data
+   * 3. Server sets firefly_iii_session cookie if credentials are valid
    */
   login(email: string, password: string): Observable<AuthResponse> {
-    // First try to get CSRF token from the current page's meta tag
-    let csrfToken = this.getCsrfTokenFromMeta();
-
-    // If token not in DOM, fetch the login form to get it
-    if (!csrfToken) {
-      return this.http
-        .get(`${this.apiUrl}/login`, { 
-          responseType: 'text',
-          withCredentials: true 
+    // First fetch CSRF token from endpoint
+    return this.http
+      .get<{ csrf_token: string }>('/csrf-token', { 
+        withCredentials: true
+      })
+      .pipe(
+        switchMap((response) => {
+          const csrfToken = response.csrf_token;
+          return this.submitLogin(email, password, csrfToken);
+        }),
+        catchError((error) => {
+          console.error('Failed to fetch CSRF token', error);
+          // Try login without token as last resort
+          return this.submitLogin(email, password, '');
         })
-        .pipe(
-          switchMap((html: string) => {
-            csrfToken = this.extractCsrfTokenFromHtml(html);
-            return this.submitLogin(email, password, csrfToken);
-          }),
-          catchError((error) => {
-            console.error('Failed to fetch login form', error);
-            // Try login without token as last resort
-            return this.submitLogin(email, password, '');
-          })
-        );
-    }
-
-    // Token already available in DOM, submit directly
-    return this.submitLogin(email, password, csrfToken);
+      );
   }
 
   /**
    * Submit login form with credentials and CSRF token
+   * For Firefly III, login returns a 204 No Content response with session cookie set
+   * We need to verify authentication by checking /api/v1/about after login
    */
   private submitLogin(email: string, password: string, csrfToken: string): Observable<AuthResponse> {
     const formData = new FormData();
@@ -122,24 +121,50 @@ export class AuthService {
         withCredentials: true
       })
       .pipe(
-        tap((response) => {
-          // For session-based auth, we store a token to track if user is authenticated
+        delay(500), // Wait for session cookie to be set
+        switchMap(() => {
+          // Login returned 204 (no content), but session should be set
+          // Verify authentication with /api/v1/about
+          return this.http.get<any>(`${this.apiUrl}/api/v1/about`, { withCredentials: true });
+        }),
+        tap((aboutResponse) => {
+          // User is authenticated, store the session token
           localStorage.setItem('firefly_token', 'session');
+          
+          // aboutResponse might be null for 204 No Content from login
+          // In that case, just store a placeholder user
+          if (!aboutResponse) {
+            localStorage.setItem('firefly_user', JSON.stringify({
+              id: '1',
+              email: email,
+              name: 'User',
+              role: 'user' as const,
+            }));
+            this.currentUserSubject.next({
+              id: '1',
+              email: email,
+              name: 'User',
+              role: 'user' as const,
+            });
+            return;
+          }
+          
+          const user = aboutResponse.data || aboutResponse;
           localStorage.setItem('firefly_user', JSON.stringify({
-            id: (response.user?.id || 1).toString(),
+            id: (user?.id || 1).toString(),
             email: email,
-            name: response.user?.name || 'User',
+            name: user?.attributes?.name || user?.name || 'User',
             role: 'user' as const,
           }));
           this.currentUserSubject.next({
-            id: (response.user?.id || 1).toString(),
+            id: (user?.id || 1).toString(),
             email: email,
-            name: response.user?.name || 'User',
+            name: user?.attributes?.name || user?.name || 'User',
             role: 'user' as const,
           });
         }),
         catchError((error) => {
-          console.error('Login failed', error);
+          console.error('Login verification failed', error);
           let errorMsg = 'Login failed. Please check your credentials.';
           
           // Try to extract error message from various response formats
@@ -155,6 +180,8 @@ export class AuthService {
             errorMsg = 'Session expired. Please refresh and try again.';
           } else if (error.status === 422) {
             errorMsg = 'Invalid email or password.';
+          } else if (error.status === 401 || error.status === 403) {
+            errorMsg = 'Invalid email or password.';
           }
           
           return throwError(() => new Error(errorMsg));
@@ -164,40 +191,32 @@ export class AuthService {
 
   /**
    * Register new user
-   * Similar to login, requires CSRF token and form submission
+   * Posts form data to the Laravel /register endpoint with CSRF token
+   * Successfully registered users are redirected and a session cookie is set
    */
   register(email: string, password: string): Observable<AuthResponse> {
-    // First try to get CSRF token from the current page's meta tag
-    let csrfToken = this.getCsrfTokenFromMeta();
-
-    // If token not in DOM, fetch the register form to get it
-    if (!csrfToken) {
-      return this.http
-        .get(`${this.apiUrl}/register`, { 
-          responseType: 'text',
-          withCredentials: true 
+    // First fetch CSRF token
+    return this.http
+      .get<{ csrf_token: string }>('/csrf-token', {
+        withCredentials: true
+      })
+      .pipe(
+        switchMap((response) => {
+          const csrfToken = response.csrf_token;
+          return this.submitRegisterForm(email, password, csrfToken);
+        }),
+        catchError((error) => {
+          console.error('Failed to fetch CSRF token', error);
+          // Try register without token as last resort
+          return this.submitRegisterForm(email, password, '');
         })
-        .pipe(
-          switchMap((html: string) => {
-            csrfToken = this.extractCsrfTokenFromHtml(html);
-            return this.submitRegister(email, password, csrfToken);
-          }),
-          catchError((error) => {
-            console.error('Failed to fetch register form', error);
-            // Try register without token as last resort
-            return this.submitRegister(email, password, '');
-          })
-        );
-    }
-
-    // Token already available in DOM, submit directly
-    return this.submitRegister(email, password, csrfToken);
+      );
   }
 
   /**
    * Submit registration form with credentials and CSRF token
    */
-  private submitRegister(email: string, password: string, csrfToken: string): Observable<AuthResponse> {
+  private submitRegisterForm(email: string, password: string, csrfToken: string): Observable<AuthResponse> {
     const formData = new FormData();
     formData.append('email', email);
     formData.append('password', password);
@@ -207,45 +226,55 @@ export class AuthService {
     }
 
     return this.http
-      .post<any>(`${this.apiUrl}/register`, formData, { 
+      .post<any>('/register', formData, { 
         withCredentials: true
       })
       .pipe(
         tap((response) => {
-          // For session-based auth, we store a token to track if user is authenticated
+          // If we got here, registration was successful
+          // Laravel sets the session cookie automatically
           localStorage.setItem('firefly_token', 'session');
-          localStorage.setItem('firefly_user', JSON.stringify({
-            id: (response.user?.id || 1).toString(),
-            email: email,
-            name: response.user?.name || 'User',
-            role: 'user' as const,
-          }));
+          localStorage.setItem(
+            'firefly_user',
+            JSON.stringify({
+              id: '1',
+              email: email,
+              name: 'User',
+              role: 'user' as const,
+            })
+          );
           this.currentUserSubject.next({
-            id: (response.user?.id || 1).toString(),
+            id: '1',
             email: email,
-            name: response.user?.name || 'User',
+            name: 'User',
             role: 'user' as const,
           });
         }),
         catchError((error) => {
           console.error('Registration failed', error);
           let errorMsg = 'Registration failed. Please try again.';
-          
-          // Try to extract error message from various response formats
+
           if (error.error?.message) {
             errorMsg = error.error.message;
-          } else if (error.error?.errors?.email?.[0]) {
-            errorMsg = error.error.errors.email[0];
-          } else if (error.error?.errors?.password?.[0]) {
-            errorMsg = error.error.errors.password[0];
-          } else if (typeof error.error === 'string') {
-            errorMsg = error.error;
+          } else if (error.status === 422) {
+            // Try to extract validation errors
+            if (error.error?.errors?.email) {
+              errorMsg = Array.isArray(error.error.errors.email) 
+                ? error.error.errors.email[0] 
+                : error.error.errors.email;
+            } else if (error.error?.errors?.password) {
+              errorMsg = Array.isArray(error.error.errors.password)
+                ? error.error.errors.password[0]
+                : error.error.errors.password;
+            } else {
+              errorMsg = 'Invalid email or password.';
+            }
           } else if (error.status === 419) {
             errorMsg = 'Session expired. Please refresh and try again.';
-          } else if (error.status === 422) {
-            errorMsg = 'Email already exists or invalid input.';
+          } else if (error.status === 405) {
+            errorMsg = 'Registration endpoint not available.';
           }
-          
+
           return throwError(() => new Error(errorMsg));
         })
       );

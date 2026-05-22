@@ -41,6 +41,19 @@ if (!defined('DATEFORMAT')) {
     define('DATEFORMAT', '(19|20)[0-9]{2}-?[0-9]{2}-?[0-9]{2}');
 }
 
+// Registration API route (no authentication required, part of the API group)
+Route::group(
+    [
+        'namespace'  => 'FireflyIII\Api\V1\Controllers\User',
+        'prefix'     => 'v1/users',
+        'as'         => 'api.v1.users.',
+        'middleware' => ['api'],
+    ],
+    static function (): void {
+        Route::post('register', ['uses' => 'RegisterController@register', 'as' => 'register']);
+    }
+);
+
 // API route for cron
 Route::group(
     [

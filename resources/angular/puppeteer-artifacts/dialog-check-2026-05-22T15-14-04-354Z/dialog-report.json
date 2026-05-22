@@ -1,0 +1,163 @@
+{
+  "baseUrl": "http://localhost:4200",
+  "credentials": "demo@firefly3.com",
+  "screenshots": {
+    "accountDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\account-dialog.png",
+    "accountTypeDropdown": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\account-type-dropdown.png",
+    "transactionDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\transaction-dialog.png",
+    "transactionDropdowns": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\transaction-dropdowns.png",
+    "budgetDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\budget-dialog.png",
+    "budgetTypeDropdown": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-14-04-354Z\\budget-type-dropdown.png"
+  },
+  "dialogs": {
+    "account": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": false,
+      "overlapFields": [],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": 25,
+        "maxGap": 51.8
+      },
+      "accountTypeDropdown": {
+        "opens": true,
+        "optionCount": 4,
+        "options": [
+          "Asset",
+          "Liability",
+          "Expense",
+          "Revenue"
+        ],
+        "labelMovesUp": true,
+        "textOverlapWhileOpen": false,
+        "textOverlapAfterSelection": false,
+        "selectedValue": "Asset"
+      }
+    },
+    "transaction": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": true,
+      "overlapFields": [
+        "Amount"
+      ],
+      "excessiveWhitespace": true,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": -160,
+        "maxGap": 75
+      },
+      "dropdowns": {
+        "type": {
+          "opens": true,
+          "optionCount": 3,
+          "options": [
+            "Transfer",
+            "Withdrawal",
+            "Deposit"
+          ],
+          "labelMovesUp": true,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "Transfer",
+          "error": null
+        },
+        "source_account_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Waiting failed: 15000ms exceeded"
+        },
+        "destination_account_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Waiting failed: 15000ms exceeded"
+        },
+        "category_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Node is detached from document"
+        },
+        "budget_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Node is detached from document"
+        }
+      }
+    },
+    "budget": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": true,
+      "overlapFields": [
+        "Budget name"
+      ],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": 25,
+        "maxGap": 51.8
+      },
+      "budgetTypeDropdown": {
+        "opens": true,
+        "optionCount": 4,
+        "options": [
+          "No automatic budget",
+          "Reset budget on period",
+          "Rollover remaining amount",
+          "Adjusted budget amount"
+        ],
+        "labelMovesUp": true,
+        "textOverlapWhileOpen": false,
+        "textOverlapAfterSelection": false,
+        "selectedValue": "No automatic budget"
+      }
+    }
+  },
+  "overall": "needs more work",
+  "issues": [
+    "Transaction labels overlap values",
+    "Transaction dialog has excessive whitespace",
+    "Transaction dropdown issues: source_account_id: opens=false, labelMovesUp=false, overlap=false; destination_account_id: opens=false, labelMovesUp=false, overlap=false; category_id: opens=false, labelMovesUp=false, overlap=false; budget_id: opens=false, labelMovesUp=false, overlap=false",
+    "Budget labels overlap values"
+  ]
+}

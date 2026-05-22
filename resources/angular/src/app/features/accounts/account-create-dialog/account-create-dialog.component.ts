@@ -6,12 +6,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '@core/services/api.service';
+
+interface CurrencyOption {
+  id: string;
+  code: string;
+  name: string;
+  symbol?: string;
+}
 
 @Component({
   selector: 'app-account-create-dialog',
@@ -24,7 +30,6 @@ import { ApiService } from '@core/services/api.service';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatCardModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatCheckboxModule,
@@ -34,122 +39,177 @@ import { ApiService } from '@core/services/api.service';
     <div class="dialog-wrapper">
       <div class="dialog-header">
         <h2>Create New Account</h2>
-        <button mat-icon-button (click)="dialogRef.close()" class="close-btn">
+        <button mat-icon-button (click)="dialogRef.close()" class="close-btn" type="button">
           <mat-icon>close</mat-icon>
         </button>
       </div>
 
-      <form [formGroup]="accountForm" (ngSubmit)="onSubmit()">
+      <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="dialog-form">
         <div class="form-content">
-          <!-- Account Type -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Account Type</mat-label>
-            <mat-select formControlName="type" (selectionChange)="onTypeChange()">
-              <mat-option value="asset">Asset</mat-option>
-              <mat-option value="liability">Liability</mat-option>
-              <mat-option value="expense">Expense</mat-option>
-              <mat-option value="revenue">Revenue</mat-option>
-            </mat-select>
-          </mat-form-field>
+          <fieldset class="form-section">
+            <legend class="form-section-title">Account details</legend>
 
-          <!-- Account Name -->
-          <mat-form-field appearance="fill" class="full-width">
-            <mat-label>Account Name</mat-label>
-            <input
-              matInput
-              formControlName="name"
-              placeholder="e.g., Checking Account, Credit Card"
-              required
-            />
-            <mat-error *ngIf="accountForm.get('name')?.hasError('required')">
-              Account name is required
-            </mat-error>
-            <mat-error *ngIf="accountForm.get('name')?.hasError('maxlength')">
-              Name must be less than 1024 characters
-            </mat-error>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Account type</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Account type</mat-label>
+                  <mat-select formControlName="type" (selectionChange)="onTypeChange()">
+                    <mat-option value="asset">Asset</mat-option>
+                    <mat-option value="liability">Liability</mat-option>
+                    <mat-option value="expense">Expense</mat-option>
+                    <mat-option value="revenue">Revenue</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Currency (for asset/liability) -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showCurrency">
-            <mat-label>Currency</mat-label>
-            <mat-select formControlName="currency_code">
-              <mat-option value="USD">USD (US Dollar)</mat-option>
-              <mat-option value="EUR">EUR (Euro)</mat-option>
-              <mat-option value="GBP">GBP (British Pound)</mat-option>
-              <mat-option value="JPY">JPY (Japanese Yen)</mat-option>
-              <mat-option value="CHF">CHF (Swiss Franc)</mat-option>
-              <mat-option value="CAD">CAD (Canadian Dollar)</mat-option>
-              <mat-option value="AUD">AUD (Australian Dollar)</mat-option>
-            </mat-select>
-          </mat-form-field>
+            <div class="form-row">
+              <div class="form-label">Account name</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Account name</mat-label>
+                  <input
+                    matInput
+                    formControlName="name"
+                    placeholder="e.g. Checking Account, Credit Card"
+                    required
+                  />
+                  <mat-error *ngIf="accountForm.get('name')?.hasError('required')">
+                    Account name is required.
+                  </mat-error>
+                  <mat-error *ngIf="accountForm.get('name')?.hasError('maxlength')">
+                    Name must be less than 1024 characters.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Opening Balance (for asset/liability) -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showOpeningBalance">
-            <mat-label>Opening Balance</mat-label>
-            <input matInput formControlName="opening_balance" type="number" step="0.01" />
-            <mat-hint>Starting balance for this account</mat-hint>
-          </mat-form-field>
+            <div class="form-row" *ngIf="showAccountRole">
+              <div class="form-label">Account role</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Account role</mat-label>
+                  <mat-select formControlName="account_role">
+                    <mat-option *ngFor="let role of accountRoles" [value]="role.value">
+                      {{ role.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="accountForm.get('account_role')?.hasError('required')">
+                    Account role is required for asset accounts.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Opening Balance Date (for asset/liability) -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showOpeningBalance">
-            <mat-label>Opening Balance Date</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="opening_balance_date" />
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-          </mat-form-field>
+            <div class="form-row" *ngIf="showCurrency">
+              <div class="form-label">Currency</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Currency</mat-label>
+                  <mat-select formControlName="currency_code">
+                    <mat-option *ngFor="let currency of currencies" [value]="currency.code">
+                      {{ currency.code }} · {{ currency.name }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- IBAN -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showIban">
-            <mat-label>IBAN</mat-label>
-            <input matInput formControlName="iban" placeholder="Optional IBAN number" />
-            <mat-hint>International Bank Account Number</mat-hint>
-          </mat-form-field>
+            <div class="form-row" *ngIf="showOpeningBalance">
+              <div class="form-label">Opening balance</div>
+              <div class="form-control-group">
+                <div class="form-field-grid">
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Amount</mat-label>
+                    <input matInput formControlName="opening_balance" type="number" step="0.01" />
+                    <mat-hint>Starting balance for this account</mat-hint>
+                  </mat-form-field>
 
-          <!-- BIC -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showBic">
-            <mat-label>BIC</mat-label>
-            <input matInput formControlName="bic" placeholder="Optional BIC code" maxlength="11" />
-            <mat-hint>Bank Identifier Code (max 11 characters)</mat-hint>
-          </mat-form-field>
+                  <mat-form-field appearance="outline" class="dialog-form-field">
+                    <mat-label>Balance date</mat-label>
+                    <input matInput [matDatepicker]="openingBalancePicker" formControlName="opening_balance_date" />
+                    <mat-datepicker-toggle matSuffix [for]="openingBalancePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #openingBalancePicker></mat-datepicker>
+                    <mat-error *ngIf="accountForm.get('opening_balance_date')?.hasError('required')">
+                      An opening balance date is required when an opening balance is entered.
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
 
-          <!-- Account Number -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showAccountNumber">
-            <mat-label>Account Number</mat-label>
-            <input matInput formControlName="account_number" placeholder="Optional account number" />
-          </mat-form-field>
+            <div class="form-row" *ngIf="showVirtualBalance">
+              <div class="form-label">Virtual balance</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Virtual balance</mat-label>
+                  <input matInput formControlName="virtual_balance" type="number" step="0.01" />
+                  <mat-hint>Optional virtual balance shown alongside the real balance</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
+          </fieldset>
 
-          <!-- Virtual Balance (for asset) -->
-          <mat-form-field appearance="fill" class="full-width" *ngIf="showVirtualBalance">
-            <mat-label>Virtual Balance</mat-label>
-            <input matInput formControlName="virtual_balance" type="number" step="0.01" />
-            <mat-hint>Optional virtual balance</mat-hint>
-          </mat-form-field>
+          <fieldset class="form-section" *ngIf="showIban || showBic || showAccountNumber">
+            <legend class="form-section-title">Bank details</legend>
 
-          <!-- Include in Net Worth -->
-          <div class="checkbox-group" *ngIf="showNetWorth">
-            <mat-checkbox formControlName="include_net_worth">
-              Include in net worth calculations
-            </mat-checkbox>
-          </div>
+            <div class="form-row" *ngIf="showIban">
+              <div class="form-label">IBAN</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>IBAN</mat-label>
+                  <input matInput formControlName="iban" placeholder="Optional IBAN number" />
+                  <mat-hint>International Bank Account Number</mat-hint>
+                </mat-form-field>
+              </div>
+            </div>
 
-          <!-- Active -->
-          <div class="checkbox-group">
-            <mat-checkbox formControlName="active">
-              Active account
-            </mat-checkbox>
-          </div>
+            <div class="form-row" *ngIf="showBic">
+              <div class="form-label">BIC</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>BIC</mat-label>
+                  <input matInput formControlName="bic" maxlength="11" placeholder="Optional BIC code" />
+                  <mat-hint>Bank Identifier Code</mat-hint>
+                  <mat-error *ngIf="accountForm.get('bic')?.hasError('maxlength')">
+                    BIC must be 11 characters or less.
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <div class="form-row" *ngIf="showAccountNumber">
+              <div class="form-label">Account number</div>
+              <div class="form-control-group">
+                <mat-form-field appearance="outline" class="dialog-form-field">
+                  <mat-label>Account number</mat-label>
+                  <input matInput formControlName="account_number" placeholder="Optional account number" />
+                </mat-form-field>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-section">
+            <legend class="form-section-title">Preferences</legend>
+
+            <div class="form-row form-row-checkboxes">
+              <div class="form-label">Options</div>
+              <div class="form-control-group">
+                <div class="checkbox-stack">
+                  <mat-checkbox formControlName="include_net_worth" *ngIf="showNetWorth">
+                    Include in net worth calculations
+                  </mat-checkbox>
+                  <mat-checkbox formControlName="active">Active account</mat-checkbox>
+                </div>
+              </div>
+            </div>
+          </fieldset>
         </div>
 
         <div class="dialog-actions">
-          <button mat-button (click)="dialogRef.close()" type="button">
-            Cancel
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            type="submit"
-            [disabled]="!accountForm.valid || isSubmitting"
-          >
+          <button mat-button (click)="dialogRef.close()" type="button">Cancel</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
             {{ isSubmitting ? 'Creating...' : 'Create Account' }}
           </button>
         </div>
@@ -192,64 +252,29 @@ import { ApiService } from '@core/services/api.service';
       margin-left: 1rem;
     }
 
-    form {
+    .dialog-form {
       display: flex;
       flex-direction: column;
-      height: fit-content;
-      max-height: none;
-      overflow: hidden;
+      min-height: 0;
     }
 
     .form-content {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      padding: 1.5rem;
+      gap: 0.75rem;
+      padding: 1rem;
       overflow-y: auto;
-      height: fit-content;
-      max-height: none;
-      width: 100%;
-      min-width: 0;
+      min-height: 0;
     }
 
-    .form-content::-webkit-scrollbar {
-      width: 8px;
+    legend.form-section-title {
+      padding: 0 0.5rem;
     }
 
-    .form-content::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .form-content::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-    }
-
-    mat-form-field {
-      width: 100%;
-      color: #cbd5e1;
-      display: block;
-      box-sizing: border-box;
-    }
-
-    .full-width {
-      width: 100%;
-      display: block;
-      box-sizing: border-box;
-    }
-
-    input[matInput],
-    textarea[matInput],
-    select {
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }
-
-    .checkbox-group {
+    .checkbox-stack {
       display: flex;
-      align-items: center;
-      margin: 0.5rem 0;
-      padding: 0.5rem 0;
+      flex-direction: column;
+      gap: 0.75rem;
     }
 
     .dialog-actions {
@@ -277,11 +302,30 @@ import { ApiService } from '@core/services/api.service';
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    @media (max-width: 768px) {
+      .dialog-actions {
+        flex-wrap: wrap;
+      }
+
+      .dialog-actions button {
+        flex: 1 1 auto;
+      }
+    }
   `],
 })
 export class AccountCreateDialogComponent implements OnInit {
   accountForm: FormGroup;
   isSubmitting = false;
+  currencies: CurrencyOption[] = [];
+
+  accountRoles = [
+    { value: 'defaultAsset', label: 'Default asset' },
+    { value: 'sharedAsset', label: 'Shared asset' },
+    { value: 'savingAsset', label: 'Savings account' },
+    { value: 'ccAsset', label: 'Credit card' },
+    { value: 'cashWalletAsset', label: 'Cash wallet' },
+  ];
 
   showCurrency = true;
   showOpeningBalance = true;
@@ -290,6 +334,7 @@ export class AccountCreateDialogComponent implements OnInit {
   showAccountNumber = true;
   showVirtualBalance = true;
   showNetWorth = true;
+  showAccountRole = true;
 
   constructor(
     private fb: FormBuilder,
@@ -304,7 +349,7 @@ export class AccountCreateDialogComponent implements OnInit {
       opening_balance: [null],
       opening_balance_date: [null],
       iban: [''],
-      bic: [''],
+      bic: ['', Validators.maxLength(11)],
       account_number: [''],
       virtual_balance: [null],
       include_net_worth: [true],
@@ -313,11 +358,27 @@ export class AccountCreateDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadCurrencies();
     this.onTypeChange();
+    this.accountForm.get('opening_balance')?.valueChanges.subscribe(() => {
+      this.updateOpeningBalanceDateValidator();
+    });
+  }
+
+  loadCurrencies(): void {
+    this.apiService.get<any>('currencies', { limit: 100 }).subscribe({
+      next: (response: any) => {
+        this.currencies = this.normalizeCollection<CurrencyOption>(response);
+      },
+      error: (err) => {
+        console.error('Error loading currencies:', err);
+      },
+    });
   }
 
   onTypeChange(): void {
     const type = this.accountForm.get('type')?.value;
+    const accountRoleControl = this.accountForm.get('account_role');
 
     this.showCurrency = ['asset', 'liability'].includes(type);
     this.showOpeningBalance = ['asset', 'liability'].includes(type);
@@ -326,15 +387,55 @@ export class AccountCreateDialogComponent implements OnInit {
     this.showIban = ['asset', 'liability'].includes(type);
     this.showBic = ['asset', 'liability'].includes(type);
     this.showAccountNumber = ['asset', 'liability'].includes(type);
+    this.showAccountRole = type === 'asset';
+
+    if (this.showAccountRole) {
+      accountRoleControl?.setValidators([Validators.required]);
+      if (!accountRoleControl?.value) {
+        accountRoleControl?.setValue('defaultAsset');
+      }
+    } else {
+      accountRoleControl?.clearValidators();
+    }
+
+    accountRoleControl?.updateValueAndValidity();
+    this.updateOpeningBalanceDateValidator();
   }
 
   onSubmit(): void {
     if (!this.accountForm.valid) {
+      this.accountForm.markAllAsTouched();
       return;
     }
 
     this.isSubmitting = true;
-    const formData = this.accountForm.value;
+    const formData = { ...this.accountForm.getRawValue() };
+
+    if (!this.showAccountRole) {
+      delete formData.account_role;
+    }
+    if (!this.showCurrency) {
+      delete formData.currency_code;
+    }
+    if (!this.showOpeningBalance) {
+      delete formData.opening_balance;
+      delete formData.opening_balance_date;
+    }
+    if (!this.showVirtualBalance) {
+      delete formData.virtual_balance;
+    }
+    if (!this.showNetWorth) {
+      delete formData.include_net_worth;
+    }
+    if (!this.showIban) {
+      delete formData.iban;
+    }
+    if (!this.showBic) {
+      delete formData.bic;
+    }
+    if (!this.showAccountNumber) {
+      delete formData.account_number;
+    }
 
     Object.keys(formData).forEach((key) => {
       if (formData[key] === null || formData[key] === '') {
@@ -354,5 +455,34 @@ export class AccountCreateDialogComponent implements OnInit {
       },
     });
   }
-}
 
+  private normalizeCollection<T extends Record<string, any>>(response: any): T[] {
+    const items = Array.isArray(response?.data)
+      ? response.data
+      : Array.isArray(response?.data?.data)
+        ? response.data.data
+        : [];
+
+    return items.map((item: any) => {
+      if (item?.attributes) {
+        return { id: item.id, ...item.attributes } as T;
+      }
+
+      return item as T;
+    });
+  }
+
+  private updateOpeningBalanceDateValidator(): void {
+    const balanceControl = this.accountForm.get('opening_balance');
+    const dateControl = this.accountForm.get('opening_balance_date');
+    const hasOpeningBalance = balanceControl?.value !== null && balanceControl?.value !== '';
+
+    if (this.showOpeningBalance && hasOpeningBalance) {
+      dateControl?.setValidators([Validators.required]);
+    } else {
+      dateControl?.clearValidators();
+    }
+
+    dateControl?.updateValueAndValidity({ emitEvent: false });
+  }
+}

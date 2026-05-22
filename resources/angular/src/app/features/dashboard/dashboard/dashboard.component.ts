@@ -1,11 +1,19 @@
 // src/app/features/dashboard/dashboard/dashboard.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { ApiService } from '@core/services/api.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { AccountCreateDialogComponent } from '@features/accounts/account-create-dialog/account-create-dialog.component';
+import { TransactionCreateDialogComponent } from '@features/transactions/transaction-create-dialog/transaction-create-dialog.component';
+import { BudgetCreateDialogComponent } from '@features/budgets/budget-create-dialog/budget-create-dialog.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatButtonModule,
     RouterModule,
     MatIconModule,
+    MatProgressSpinnerModule,
   ],
   template: `
     <div class="dashboard-container">
@@ -27,79 +36,104 @@ import { MatIconModule } from '@angular/material/icon';
         </div>
       </div>
 
-      <mat-grid-list cols="4" rowHeight="200px" gutterSize="20px" class="dashboard-grid">
-        <mat-grid-tile>
-          <mat-card class="stat-card primary">
-            <mat-card-header>
-              <mat-card-title>Total Assets</mat-card-title>
-              <mat-icon>trending_up</mat-icon>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-value">$12,345.67</div>
-              <p class="stat-change positive">
-                <mat-icon>arrow_upward</mat-icon>
-                +2.3% from last month
-              </p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
+      <div *ngIf="loading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading your financial data...</p>
+      </div>
 
-        <mat-grid-tile>
-          <mat-card class="stat-card warning">
-            <mat-card-header>
-              <mat-card-title>Total Expenses</mat-card-title>
-              <mat-icon>shopping_cart</mat-icon>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-value">$2,345.67</div>
-              <p class="stat-change">This month</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
+      <div *ngIf="!loading">
+        <mat-grid-list cols="4" rowHeight="200px" gutterSize="20px" class="dashboard-grid">
+          <mat-grid-tile>
+            <mat-card class="stat-card primary">
+              <mat-card-header>
+                <mat-card-title>Total Assets</mat-card-title>
+                <mat-icon>trending_up</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stat-value">{{ totalAssets | currency }}</div>
+                <p class="stat-change positive">
+                  <mat-icon>arrow_upward</mat-icon>
+                  Assets Balance
+                </p>
+              </mat-card-content>
+            </mat-card>
+          </mat-grid-tile>
 
-        <mat-grid-tile>
-          <mat-card class="stat-card info">
-            <mat-card-header>
-              <mat-card-title>Budget Status</mat-card-title>
-              <mat-icon>assessment</mat-icon>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-value">67%</div>
-              <p class="stat-change">Used of budget</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
+          <mat-grid-tile>
+            <mat-card class="stat-card warning">
+              <mat-card-header>
+                <mat-card-title>Total Expenses</mat-card-title>
+                <mat-icon>shopping_cart</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stat-value">{{ totalExpenses | currency }}</div>
+                <p class="stat-change">This month</p>
+              </mat-card-content>
+            </mat-card>
+          </mat-grid-tile>
 
-        <mat-grid-tile>
-          <mat-card class="stat-card success">
-            <mat-card-header>
-              <mat-card-title>Income</mat-card-title>
-              <mat-icon>attach_money</mat-icon>
-            </mat-card-header>
-            <mat-card-content>
-              <div class="stat-value">$5,000.00</div>
-              <p class="stat-change">This month</p>
-            </mat-card-content>
-          </mat-card>
-        </mat-grid-tile>
-      </mat-grid-list>
+          <mat-grid-tile>
+            <mat-card class="stat-card info">
+              <mat-card-header>
+                <mat-card-title>Budget Status</mat-card-title>
+                <mat-icon>assessment</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stat-value">{{ budgetUsed }}%</div>
+                <p class="stat-change">Used of budget</p>
+              </mat-card-content>
+            </mat-card>
+          </mat-grid-tile>
 
-      <div class="quick-actions">
-        <h2>Quick Actions</h2>
-        <div class="button-group">
-          <button mat-raised-button class="action-btn primary" routerLink="/transactions">
-            <mat-icon>add_circle</mat-icon>
-            New Transaction
-          </button>
-          <button mat-raised-button class="action-btn secondary" routerLink="/accounts">
-            <mat-icon>account_balance</mat-icon>
-            View Accounts
-          </button>
-          <button mat-raised-button class="action-btn tertiary" routerLink="/budgets">
-            <mat-icon>monetization_on</mat-icon>
-            View Budgets
-          </button>
-        </div>
+          <mat-grid-tile>
+            <mat-card class="stat-card success">
+              <mat-card-header>
+                <mat-card-title>Income</mat-card-title>
+                <mat-icon>attach_money</mat-icon>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="stat-value">{{ totalIncome | currency }}</div>
+                <p class="stat-change">This month</p>
+              </mat-card-content>
+            </mat-card>
+          </mat-grid-tile>
+        </mat-grid-list>
+
+        <div class="quick-actions">
+          <h2>Quick Actions</h2>
+          <div class="button-group">
+            <button mat-raised-button class="action-btn primary" (click)="openCreateTransactionDialog()">
+              <mat-icon>add_circle</mat-icon>
+              New Transaction
+            </button>
+            <button mat-raised-button class="action-btn secondary" (click)="openCreateAccountDialog()">
+              <mat-icon>account_balance</mat-icon>
+              New Account
+            </button>
+            <button mat-raised-button class="action-btn tertiary" (click)="openCreateBudgetDialog()">
+              <mat-icon>monetization_on</mat-icon>
+              New Budget
+            </button>
+            <button mat-raised-button class="action-btn secondary" routerLink="/accounts">
+              <mat-icon>list</mat-icon>
+              View Accounts ({{ accountCount }})
+            </button>
+            <button mat-raised-button class="action-btn tertiary" routerLink="/budgets">
+              <mat-icon>list</mat-icon>
+              View Budgets ({{ budgetCount }})
+            </button>
+            <button mat-raised-button class="action-btn secondary" routerLink="/bills">
+              <mat-icon>receipt</mat-icon>
+              View Bills
+            </button>
+            <button mat-raised-button class="action-btn secondary" routerLink="/tags">
+              <mat-icon>label</mat-icon>
+              View Tags
+            </button>
+            <button mat-raised-button class="action-btn secondary" routerLink="/rules">
+              <mat-icon>rule</mat-icon>
+              View Rules
+            </button>
       </div>
     </div>
   `,
@@ -110,6 +144,17 @@ import { MatIconModule } from '@angular/material/icon';
       margin: 0 auto;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       min-height: 100vh;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 400px;
+      gap: 1rem;
+      color: #cbd5e1;
+      font-size: 1.1rem;
     }
 
     .dashboard-header {
@@ -294,6 +339,107 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `],
 })
-export class DashboardComponent implements OnInit {
-  ngOnInit(): void {}
+export class DashboardComponent implements OnInit, OnDestroy {
+  loading = true;
+  totalAssets = 0;
+  totalExpenses = 0;
+  totalIncome = 0;
+  budgetUsed = 0;
+  accountCount = 0;
+  budgetCount = 0;
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private apiService: ApiService,
+    private dialog: MatDialog
+  ) {}
+
+  ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadDashboardData(): void {
+    // Load accounts data
+    this.apiService
+      .get<any>('accounts')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const accounts = Array.isArray(response.data) ? response.data : response.data?.data || [];
+          this.accountCount = accounts.length;
+
+          // Calculate totals from accounts
+          this.totalAssets = accounts
+            .filter((a: any) => a.type === 'asset')
+            .reduce((sum: number, a: any) => sum + (a.current_balance || 0), 0);
+
+          this.totalExpenses = Math.abs(
+            accounts
+              .filter((a: any) => a.type === 'expense')
+              .reduce((sum: number, a: any) => sum + (a.current_balance || 0), 0)
+          );
+
+          this.totalIncome = accounts
+            .filter((a: any) => a.type === 'revenue')
+            .reduce((sum: number, a: any) => sum + (a.current_balance || 0), 0);
+        },
+        error: (err) => {
+          console.error('Error loading accounts:', err);
+          this.loading = false;
+        },
+      });
+
+    // Load budgets data
+    this.apiService
+      .get<any>('budgets')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          const budgets = Array.isArray(response.data) ? response.data : response.data?.data || [];
+          this.budgetCount = budgets.length;
+
+          if (budgets.length > 0) {
+            const totalBudget = budgets.reduce((sum: number, b: any) => sum + (b.amount || 0), 0);
+            const totalSpent = budgets.reduce((sum: number, b: any) => sum + (b.spent || 0), 0);
+            this.budgetUsed = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+          }
+
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading budgets:', err);
+          this.loading = false;
+        },
+      });
+  }
+
+  openCreateAccountDialog(): void {
+    this.dialog.open(AccountCreateDialogComponent, {
+      width: 'min(95vw, 820px)',
+      maxHeight: '90vh',
+      panelClass: 'firefly-dialog-container',
+    });
+  }
+
+  openCreateTransactionDialog(): void {
+    this.dialog.open(TransactionCreateDialogComponent, {
+      width: 'min(95vw, 820px)',
+      maxHeight: '90vh',
+      panelClass: 'firefly-dialog-container',
+    });
+  }
+
+  openCreateBudgetDialog(): void {
+    this.dialog.open(BudgetCreateDialogComponent, {
+      width: 'min(95vw, 820px)',
+      maxHeight: '90vh',
+      panelClass: 'firefly-dialog-container',
+    });
+  }
 }
