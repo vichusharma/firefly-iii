@@ -43,49 +43,91 @@ import { AuthService } from "@core/services/auth.service";
                                     matInput
                                     type="email"
                                     placeholder="Your email"
-                                    disabled
                                 />
                                 <mat-icon matSuffix>email</mat-icon>
                             </mat-form-field>
 
+                            <div class="form-row">
+                                <mat-form-field class="half-width">
+                                    <mat-label>First Name</mat-label>
+                                    <input
+                                        matInput
+                                        type="text"
+                                        placeholder="First name"
+                                    />
+                                    <mat-icon matSuffix>person</mat-icon>
+                                </mat-form-field>
+
+                                <mat-form-field class="half-width">
+                                    <mat-label>Last Name</mat-label>
+                                    <input
+                                        matInput
+                                        type="text"
+                                        placeholder="Last name"
+                                    />
+                                    <mat-icon matSuffix>person</mat-icon>
+                                </mat-form-field>
+                            </div>
+
                             <mat-form-field class="full-width">
-                                <mat-label>First Name</mat-label>
+                                <mat-label>Mobile Number</mat-label>
                                 <input
                                     matInput
-                                    type="text"
-                                    placeholder="First name"
-                                    disabled
+                                    type="tel"
+                                    placeholder="Your phone number"
                                 />
-                                <mat-icon matSuffix>person</mat-icon>
+                                <mat-icon matSuffix>phone</mat-icon>
                             </mat-form-field>
 
                             <mat-form-field class="full-width">
-                                <mat-label>Last Name</mat-label>
+                                <mat-label>Postal Address</mat-label>
                                 <input
                                     matInput
                                     type="text"
-                                    placeholder="Last name"
-                                    disabled
+                                    placeholder="Street address"
                                 />
-                                <mat-icon matSuffix>person</mat-icon>
+                                <mat-icon matSuffix>location_on</mat-icon>
                             </mat-form-field>
 
+                            <div class="form-row">
+                                <mat-form-field class="half-width">
+                                    <mat-label>Zip Code</mat-label>
+                                    <input
+                                        matInput
+                                        type="text"
+                                        placeholder="Postal code"
+                                    />
+                                    <mat-icon matSuffix
+                                        >local_post_office</mat-icon
+                                    >
+                                </mat-form-field>
+
+                                <mat-form-field class="half-width">
+                                    <mat-label>Country</mat-label>
+                                    <input
+                                        matInput
+                                        type="text"
+                                        placeholder="Country"
+                                    />
+                                    <mat-icon matSuffix>public</mat-icon>
+                                </mat-form-field>
+                            </div>
+
                             <mat-form-field class="full-width">
-                                <mat-label>Account Created</mat-label>
+                                <mat-label>Department</mat-label>
                                 <input
                                     matInput
                                     type="text"
-                                    placeholder="Account creation date"
-                                    disabled
+                                    placeholder="Your department"
                                 />
-                                <mat-icon matSuffix>calendar_today</mat-icon>
+                                <mat-icon matSuffix>business</mat-icon>
                             </mat-form-field>
                         </div>
 
                         <mat-divider class="divider"></mat-divider>
 
                         <div class="form-actions">
-                            <button mat-raised-button color="primary" disabled>
+                            <button mat-raised-button color="primary">
                                 <mat-icon>edit</mat-icon>
                                 Edit Profile
                             </button>
@@ -106,7 +148,7 @@ import { AuthService } from "@core/services/auth.service";
                             Two-Factor Authentication:
                             <strong>Not Enabled</strong>
                         </p>
-                        <button mat-stroked-button color="primary" disabled>
+                        <button mat-stroked-button color="primary">
                             <mat-icon>security</mat-icon>
                             Enable 2FA
                         </button>
@@ -157,6 +199,16 @@ import { AuthService } from "@core/services/auth.service";
                 width: 100%;
             }
 
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+
+            .half-width {
+                width: 100%;
+            }
+
             .divider {
                 margin: 1.5rem 0;
             }
@@ -178,6 +230,10 @@ import { AuthService } from "@core/services/auth.service";
 
                 .profile-header h1 {
                     font-size: 1.5rem;
+                }
+
+                .form-row {
+                    grid-template-columns: 1fr;
                 }
             }
         `,

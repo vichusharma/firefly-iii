@@ -5,8 +5,6 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatIconModule } from "@angular/material/icon";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
-import { MatSelectModule } from "@angular/material/select";
 import { MatDividerModule } from "@angular/material/divider";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
@@ -22,8 +20,6 @@ import { SettingsService } from "@core/services/settings.service";
         MatFormFieldModule,
         MatInputModule,
         MatIconModule,
-        MatSlideToggleModule,
-        MatSelectModule,
         MatDividerModule,
         FormsModule,
     ],
@@ -31,115 +27,70 @@ import { SettingsService } from "@core/services/settings.service";
         <div class="settings-container">
             <div class="settings-header">
                 <h1>Settings</h1>
-                <p>Customize your application preferences</p>
+                <p>Manage your account settings</p>
             </div>
 
             <div class="settings-content">
                 <mat-card class="settings-card">
                     <mat-card-header>
-                        <mat-card-title>Display Settings</mat-card-title>
+                        <mat-card-title>Security Settings</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Dark Mode</h3>
-                                <p>Enable dark theme for better visibility</p>
-                            </div>
-                            <mat-slide-toggle disabled></mat-slide-toggle>
+                        <div class="settings-section">
+                            <h3>Change Password</h3>
+                            <p>
+                                Update your account password to keep your
+                                account secure
+                            </p>
+                            <button mat-raised-button color="primary">
+                                <mat-icon>lock</mat-icon>
+                                Reset Password
+                            </button>
                         </div>
 
-                        <mat-divider></mat-divider>
+                        <mat-divider class="section-divider"></mat-divider>
 
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Default Currency</h3>
-                                <p>Select your preferred currency</p>
-                            </div>
-                            <mat-form-field>
-                                <mat-label>Currency</mat-label>
-                                <mat-select [value]="'USD'" disabled>
-                                    <mat-option value="USD">USD ($)</mat-option>
-                                    <mat-option value="EUR">EUR (€)</mat-option>
-                                    <mat-option value="GBP">GBP (£)</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-
-                        <mat-divider></mat-divider>
-
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Language</h3>
-                                <p>Choose your preferred language</p>
-                            </div>
-                            <mat-form-field>
-                                <mat-label>Language</mat-label>
-                                <mat-select [value]="'en'" disabled>
-                                    <mat-option value="en">English</mat-option>
-                                    <mat-option value="es">Español</mat-option>
-                                    <mat-option value="fr">Français</mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                        <div class="settings-section">
+                            <h3>Two-Factor Authentication</h3>
+                            <p>
+                                Add an extra layer of security to your account
+                            </p>
+                            <button mat-stroked-button color="accent">
+                                <mat-icon>security</mat-icon>
+                                Configure 2FA
+                            </button>
                         </div>
                     </mat-card-content>
                 </mat-card>
 
                 <mat-card class="settings-card">
                     <mat-card-header>
-                        <mat-card-title>Notifications</mat-card-title>
+                        <mat-card-title>Future Features</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Email Notifications</h3>
-                                <p>Receive email updates about your account</p>
+                        <p class="placeholder-text">
+                            <mat-icon>info</mat-icon>
+                            Additional settings will be available here in future
+                            updates.
+                        </p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <mat-icon>check_circle_outline</mat-icon>
+                                <span>Theme Customization</span>
                             </div>
-                            <mat-slide-toggle disabled></mat-slide-toggle>
-                        </div>
-
-                        <mat-divider></mat-divider>
-
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Budget Alerts</h3>
-                                <p>
-                                    Get notified when budgets are nearly
-                                    exceeded
-                                </p>
+                            <div class="feature-item">
+                                <mat-icon>check_circle_outline</mat-icon>
+                                <span>Language Preferences</span>
                             </div>
-                            <mat-slide-toggle disabled></mat-slide-toggle>
-                        </div>
-
-                        <mat-divider></mat-divider>
-
-                        <div class="settings-item">
-                            <div class="setting-label">
-                                <h3>Transaction Alerts</h3>
-                                <p>Get notified about large transactions</p>
+                            <div class="feature-item">
+                                <mat-icon>check_circle_outline</mat-icon>
+                                <span>Notification Management</span>
                             </div>
-                            <mat-slide-toggle disabled></mat-slide-toggle>
+                            <div class="feature-item">
+                                <mat-icon>check_circle_outline</mat-icon>
+                                <span>Data Export & Import</span>
+                            </div>
                         </div>
-                    </mat-card-content>
-                </mat-card>
-
-                <mat-card class="settings-card">
-                    <mat-card-header>
-                        <mat-card-title>Data Management</mat-card-title>
-                    </mat-card-header>
-                    <mat-card-content>
-                        <button mat-stroked-button color="primary" disabled>
-                            <mat-icon>download</mat-icon>
-                            Export Data
-                        </button>
-                        <button
-                            mat-stroked-button
-                            color="warn"
-                            disabled
-                            style="margin-left: 1rem;"
-                        >
-                            <mat-icon>delete</mat-icon>
-                            Delete Account
-                        </button>
                     </mat-card-content>
                 </mat-card>
             </div>
@@ -178,36 +129,62 @@ import { SettingsService } from "@core/services/settings.service";
                 border-radius: 8px;
             }
 
-            .settings-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+            .settings-section {
                 padding: 1rem 0;
             }
 
-            .setting-label {
-                flex: 1;
-            }
-
-            .setting-label h3 {
-                margin: 0;
-                font-size: 1rem;
+            .settings-section h3 {
+                margin: 0 0 0.5rem 0;
+                font-size: 1.1rem;
                 color: #1e293b;
             }
 
-            .setting-label p {
-                margin: 0.25rem 0 0 0;
-                font-size: 0.875rem;
+            .settings-section p {
+                margin: 0 0 1rem 0;
                 color: #64748b;
+                font-size: 0.95rem;
             }
 
-            mat-slide-toggle,
-            mat-form-field {
-                margin-left: 1rem;
+            .section-divider {
+                margin: 1.5rem 0;
             }
 
             button mat-icon {
                 margin-right: 0.5rem;
+            }
+
+            .placeholder-text {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                color: #64748b;
+                margin: 0 0 1.5rem 0;
+                padding: 1rem;
+                background: #f1f5f9;
+                border-radius: 4px;
+            }
+
+            .placeholder-text mat-icon {
+                color: #3b82f6;
+                flex-shrink: 0;
+            }
+
+            .feature-list {
+                display: grid;
+                gap: 0.75rem;
+            }
+
+            .feature-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                color: #475569;
+            }
+
+            .feature-item mat-icon {
+                color: #22c55e;
+                flex-shrink: 0;
             }
 
             @media (max-width: 768px) {
@@ -217,17 +194,6 @@ import { SettingsService } from "@core/services/settings.service";
 
                 .settings-header h1 {
                     font-size: 1.5rem;
-                }
-
-                .settings-item {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-
-                mat-slide-toggle,
-                mat-form-field {
-                    margin-left: 0;
-                    margin-top: 1rem;
                 }
             }
         `,

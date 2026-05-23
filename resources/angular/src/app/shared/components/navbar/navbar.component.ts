@@ -1,9 +1,8 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatMenuModule } from "@angular/material/menu";
 import { MatDividerModule } from "@angular/material/divider";
 import { RouterModule } from "@angular/router";
 import { AuthService } from "@core/services/auth.service";
@@ -17,7 +16,6 @@ import { Router } from "@angular/router";
         MatToolbarModule,
         MatButtonModule,
         MatIconModule,
-        MatMenuModule,
         MatDividerModule,
         RouterModule,
     ],
@@ -64,27 +62,39 @@ import { Router } from "@angular/router";
                 <div class="navbar-right">
                     <button
                         mat-icon-button
-                        [matMenuTriggerFor]="userMenu"
+                        (click)="toggleUserMenu()"
                         class="user-menu-btn"
                         aria-label="User menu"
+                        #userBtn
                     >
                         <mat-icon>account_circle</mat-icon>
                     </button>
-                    <mat-menu #userMenu="matMenu" class="user-menu">
-                        <button mat-menu-item (click)="navigateToProfile()">
+                    <!-- Custom dropdown menu -->
+                    <div
+                        class="user-dropdown"
+                        *ngIf="isUserMenuOpen"
+                        [@fadeInOut]
+                    >
+                        <button
+                            class="dropdown-item"
+                            (click)="navigateToProfile()"
+                        >
                             <mat-icon>person</mat-icon>
                             <span>Profile</span>
                         </button>
-                        <button mat-menu-item (click)="navigateToSettings()">
+                        <button
+                            class="dropdown-item"
+                            (click)="navigateToSettings()"
+                        >
                             <mat-icon>settings</mat-icon>
                             <span>Settings</span>
                         </button>
-                        <mat-divider></mat-divider>
-                        <button mat-menu-item (click)="logout()">
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" (click)="logout()">
                             <mat-icon>logout</mat-icon>
                             <span>Logout</span>
                         </button>
-                    </mat-menu>
+                    </div>
                 </div>
             </div>
         </mat-toolbar>
@@ -176,28 +186,61 @@ import { Router } from "@angular/router";
                 color: #3b82f6;
             }
 
-            mat-divider {
+            /* Custom dropdown menu styling */
+            .navbar-right {
+                position: relative;
+            }
+
+            .user-dropdown {
+                position: absolute;
+                top: calc(100% + 0.5rem);
+                right: 0;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                z-index: 10000;
+                min-width: 200px;
+                overflow: hidden;
+            }
+
+            .dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: none;
+                background: transparent;
+                color: #1f2937;
+                font-size: 0.95rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-align: left;
+            }
+
+            .dropdown-item:hover {
+                background: #f3f4f6;
+                color: #3b82f6;
+            }
+
+            .dropdown-item mat-icon {
+                width: 1.25rem;
+                height: 1.25rem;
+                font-size: 1.25rem;
+                line-height: 1.25rem;
+            }
+
+            .dropdown-divider {
+                height: 1px;
+                background: #e5e7eb;
                 margin: 0.5rem 0;
             }
 
-            /* User menu dropdown styling */
-            ::ng-deep .user-menu.mat-menu-panel {
-                z-index: 10000 !important;
-            }
-
-            ::ng-deep .user-menu.mat-menu-panel .mat-mdc-menu-content {
-                padding-top: 0.5rem;
-                padding-bottom: 0.5rem;
-            }
-
-            ::ng-deep .user-menu.mat-menu-panel .mat-mdc-menu-item {
-                height: 2.5rem;
-                line-height: 2.5rem;
-            }
-
-            ::ng-deep .user-menu.mat-menu-panel .mat-mdc-menu-item mat-icon {
-                margin-right: 1rem;
-                margin-left: 0.5rem;
+            @media (max-width: 768px) {
+                .user-dropdown {
+                    right: -0.5rem;
+                }
             }
 
             @media (max-width: 768px) {
@@ -221,23 +264,45 @@ import { Router } from "@angular/router";
     ],
 })
 export class NavbarComponent implements OnInit {
+    isUserMenuOpen = false;
+    @ViewChild("userBtn") userBtn!: ElementRef;
+
     constructor(
         private authService: AuthService,
         private router: Router,
     ) {}
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        // Close menu on route navigation
+        this.router.events.subscribe(() => {
+            this.isUserMenuOpen = false;
+        });
+    }
+
+    toggleUserMenu(): void {
+        this.isUserMenuOpen = !this.isUserMenuOpen;
+    }
 
     navigateToProfile(): void {
+        this.isUserMenuOpen = false;
         this.router.navigate(["/profile"]);
     }
 
     navigateToSettings(): void {
+        this.isUserMenuOpen = false;
         this.router.navigate(["/settings"]);
     }
 
     logout(): void {
-        this.authService.logout();
-        this.router.navigate(["/login"]);
+        this.isUserMenuOpen = false;
+        this.authService.logout().subscribe(
+            () => {
+                this.router.navigate(["/login"]);
+            },
+            (error) => {
+                // Even on error, navigate to login as local data is cleared
+                this.router.navigate(["/login"]);
+            },
+        );
     }
 }

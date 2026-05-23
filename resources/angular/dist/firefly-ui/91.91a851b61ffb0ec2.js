@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkfirefly_ui=self.webpackChunkfirefly_ui||[]).push([[91],{9091:(o,s,n)=>{n.r(s),n.d(s,{routes:()=>l});const l=[{path:"",loadComponent:()=>Promise.all([n.e(596),n.e(585),n.e(351),n.e(798),n.e(765),n.e(719),n.e(852),n.e(727)]).then(n.bind(n,1727)).then(t=>t.BillsListComponent)}]}}]);
