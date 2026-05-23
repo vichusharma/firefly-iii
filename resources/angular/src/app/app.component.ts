@@ -1,66 +1,83 @@
 // src/app/app.component.ts
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { NavbarComponent } from '@shared/components/navbar/navbar.component';
-import { AuthService } from '@core/services/auth.service';
+import { Component, OnInit } from "@angular/core";
+import { RouterOutlet, Router } from "@angular/router";
+import { CommonModule } from "@angular/common";
+import { MatToolbarModule } from "@angular/material/toolbar";
+import { NavbarComponent } from "@shared/components/navbar/navbar.component";
+import { AuthService } from "@core/services/auth.service";
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, RouterOutlet, MatToolbarModule, NavbarComponent],
-  template: `
-    <div [class.dark-theme]="isDarkMode">
-      <app-navbar *ngIf="isAuthenticated && !isLoginPage"></app-navbar>
-      <router-outlet></router-outlet>
-    </div>
-  `,
-  styles: [`
-    :host {
-      display: block;
-      height: 100%;
-    }
+    selector: "app-root",
+    standalone: true,
+    imports: [CommonModule, RouterOutlet, MatToolbarModule, NavbarComponent],
+    template: `
+        <div [class.dark-theme]="isDarkMode">
+            <app-navbar *ngIf="isAuthenticated && !isLoginPage"></app-navbar>
+            <router-outlet></router-outlet>
+        </div>
+    `,
+    styles: [
+        `
+            :host {
+                display: block;
+                height: 100%;
+                overflow: hidden;
+            }
 
-    div {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
+            div {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
 
-    router-outlet {
-      flex: 1;
-    }
-  `],
+            app-navbar {
+                flex-shrink: 0;
+                z-index: 999;
+            }
+
+            router-outlet {
+                flex: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            .dark-theme {
+                background: #0f172a;
+                color: #f1f5f9;
+            }
+        `,
+    ],
 })
 export class AppComponent implements OnInit {
-  isDarkMode = false;
-  isAuthenticated = false;
-  isLoginPage = false;
+    isDarkMode = false;
+    isAuthenticated = false;
+    isLoginPage = false;
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+    constructor(
+        private authService: AuthService,
+        private router: Router,
+    ) {}
 
-  ngOnInit() {
-    this.isDarkMode = this.getThemePreference();
-    this.checkAuthStatus();
-    this.router.events.subscribe(() => {
-      this.isLoginPage = this.router.url === '/login' || this.router.url === '/register';
-      this.checkAuthStatus();
-    });
-  }
-
-  private checkAuthStatus(): void {
-    this.isAuthenticated = this.authService.isLoggedIn();
-  }
-
-  private getThemePreference(): boolean {
-    const saved = localStorage.getItem('theme-preference');
-    if (saved) {
-      return saved === 'dark';
+    ngOnInit() {
+        this.isDarkMode = this.getThemePreference();
+        this.checkAuthStatus();
+        this.router.events.subscribe(() => {
+            this.isLoginPage =
+                this.router.url === "/login" || this.router.url === "/register";
+            this.checkAuthStatus();
+        });
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
+
+    private checkAuthStatus(): void {
+        this.isAuthenticated = this.authService.isLoggedIn();
+    }
+
+    private getThemePreference(): boolean {
+        const saved = localStorage.getItem("theme-preference");
+        if (saved) {
+            return saved === "dark";
+        }
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
 }
