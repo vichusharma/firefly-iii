@@ -32,3 +32,4 @@ public/v2/i18n
 # ignore Playwright dialog audit output
 resources/angular/playwright-artifacts/
 resources/angular/.angular/cache/
+resources/angular/.angular/cache/
