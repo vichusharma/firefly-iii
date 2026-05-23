@@ -1,0 +1,150 @@
+{
+  "baseUrl": "http://localhost:4200",
+  "credentials": "demo@firefly3.com",
+  "screenshots": {
+    "accountDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\account-dialog.png",
+    "accountTypeDropdown": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\account-type-dropdown.png",
+    "transactionDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\transaction-dialog.png",
+    "transactionDropdowns": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\transaction-dropdowns.png",
+    "budgetDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\budget-dialog.png",
+    "budgetTypeDropdown": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-18-29-764Z\\budget-type-dropdown.png"
+  },
+  "dialogs": {
+    "account": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": false,
+      "overlapFields": [],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": 25,
+        "maxGap": 51.8
+      },
+      "accountTypeDropdown": {
+        "opens": false,
+        "optionCount": 0,
+        "options": [],
+        "labelMovesUp": false,
+        "textOverlapWhileOpen": false,
+        "textOverlapAfterSelection": false,
+        "selectedValue": ""
+      }
+    },
+    "transaction": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": true,
+      "overlapFields": [
+        "Amount"
+      ],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": -160,
+        "maxGap": 75
+      },
+      "dropdowns": {
+        "source_account_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Dropdown panel did not open"
+        },
+        "destination_account_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Dropdown panel did not open"
+        },
+        "category_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Dropdown panel did not open"
+        },
+        "budget_id": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Dropdown panel did not open"
+        },
+        "type": {
+          "opens": false,
+          "optionCount": 0,
+          "options": [],
+          "labelMovesUp": false,
+          "textOverlapWhileOpen": false,
+          "textOverlapAfterSelection": false,
+          "selectedValue": "",
+          "error": "Dropdown panel did not open"
+        }
+      }
+    },
+    "budget": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": true,
+      "overlapFields": [
+        "Budget name"
+      ],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": 25,
+        "maxGap": 51.8
+      },
+      "budgetTypeDropdown": {
+        "opens": false,
+        "optionCount": 0,
+        "options": [],
+        "labelMovesUp": false,
+        "textOverlapWhileOpen": false,
+        "textOverlapAfterSelection": false,
+        "selectedValue": ""
+      }
+    }
+  },
+  "overall": "needs more work",
+  "issues": [
+    "Account Type dropdown did not open properly",
+    "Account Type label did not move up",
+    "Transaction labels overlap values",
+    "Transaction dropdown issues: source_account_id: opens=false, labelMovesUp=false, overlap=false; destination_account_id: opens=false, labelMovesUp=false, overlap=false; category_id: opens=false, labelMovesUp=false, overlap=false; budget_id: opens=false, labelMovesUp=false, overlap=false; type: opens=false, labelMovesUp=false, overlap=false",
+    "Budget labels overlap values"
+  ]
+}

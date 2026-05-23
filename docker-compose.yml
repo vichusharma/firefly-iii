@@ -1,0 +1,119 @@
+# Firefly III with Integrated Angular Frontend
+# Everything in a single container - no CORS issues!
+
+version: '3.8'
+
+services:
+  # MySQL Database
+  firefly-db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: "firefly"
+      MYSQL_USER: "firefly"
+      MYSQL_PASSWORD: "firefly_password"
+    ports:
+      - "3306:3306"
+    volumes:
+      - firefly-db:/var/lib/mysql
+    networks:
+      - firefly-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Firefly III Backend + Angular Frontend (Unified Container)
+  firefly-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.unified
+    restart: unless-stopped
+    ports:
+      - "8080:8080"  # Single unified port
+    depends_on:
+      firefly-db:
+        condition: service_healthy
+    environment:
+      # Application Settings
+      APP_ENV: "production"
+      APP_DEBUG: "false"
+      APP_KEY: "base64:8iMI/7OVoJHlflCPwXKXMLm5Aq4v1qp4HZ0H9VT0qPY="
+      
+      # URLs
+      APP_URL: "http://localhost:8080"
+      TRUSTED_PROXIES: "**"
+      
+      # Database
+      DB_CONNECTION: "mysql"
+      DB_HOST: "firefly-db"
+      DB_PORT: "3306"
+      DB_DATABASE: "firefly"
+      DB_USERNAME: "firefly"
+      DB_PASSWORD: "firefly_password"
+      
+      # Mail
+      MAIL_MAILER: "log"
+      
+      # Admin settings
+      SITE_OWNER: "admin@localhost"
+      
+      # Registration
+      ALLOW_REGISTRATION: "true"
+      
+      # Logging
+      LOG_CHANNEL: "stack"
+      
+    volumes:
+      - firefly-app:/var/www/html/storage/upload
+    networks:
+      - firefly-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/about"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Data Importer
+  firefly-importer:
+    image: fireflyiii/data-importer:latest
+    restart: unless-stopped
+    ports:
+      - "8888:8080"
+    depends_on:
+      - firefly-app
+    environment:
+      APP_ENV: "production"
+      APP_DEBUG: "false"
+      APP_KEY: "base64:UE3HvJa/tKY0R2vJk3AX0F8uPG3mU3jY6R5h2pN0xQw="
+      
+      # Firefly III API settings
+      FIREFLY_III_URL: "http://firefly-app:8080"
+      FIREFLY_III_ACCESS_TOKEN: ""
+      VANITY_URL: "http://localhost:8080"
+      
+      # File upload settings
+      CAN_POST_FILES: "true"
+      AUTO_IMPORT_SECRET: "your_auto_import_secret_here"
+      
+      # Mail
+      MAIL_MAILER: "log"
+      
+    networks:
+      - firefly-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  firefly-db:
+  firefly-app:
+
+networks:
+  firefly-network:
+    driver: bridge

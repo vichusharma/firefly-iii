@@ -1,0 +1,27 @@
+{
+  "/login": {
+    "target": "http://firefly-app:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "followRedirects": true
+  },
+  "/register": {
+    "target": "http://firefly-app:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/logout": {
+    "target": "http://firefly-app:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/api": {
+    "target": "http://firefly-app:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

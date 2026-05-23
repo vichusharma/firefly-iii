@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="http://firefly-app:8080/" />
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Login to Firefly III</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="Login to Firefly III">
+
+    <!-- copy of head.blade.php -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="cfkgj5WIh1QJsOeLJv1UBMTap1rfRUnlcO47TGTQ">
+    <meta name="robots" content="noindex, nofollow, noarchive, noodp, NoImageIndex, noydir">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="color-scheme" content="light dark">
+
+    <script type="text/javascript" nonce="PmDbiDeStySar9Cy1DVhzQ==">
+        /*!
+ * Color mode toggler for Bootstrap's docs (https://getbootstrap.com/)
+ * Copyright 2011-2023 The Bootstrap Authors
+ * Licensed under the Creative Commons Attribution 3.0 Unported License.
+ */
+
+        (() => {
+            'use strict'
+            // todo store just happens to store in localStorage but if not, this would break.
+            const getStoredTheme = () => JSON.parse(localStorage.getItem('darkMode'))
+
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) {
+                    return storedTheme
+                }
+
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+
+            const setTheme = theme => {
+                if (theme === 'browser' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark')
+                    window.theme = 'dark';
+                    return;
+                }
+                if (theme === 'browser' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                    window.theme = 'light';
+                    document.documentElement.setAttribute('data-bs-theme', 'light')
+                    return;
+                }
+                document.documentElement.setAttribute('data-bs-theme', theme)
+                window.theme = theme;
+            }
+
+            setTheme(getPreferredTheme())
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme !== 'light' && storedTheme !== 'dark') {
+                    setTheme(getPreferredTheme())
+                }
+            })
+        })()
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preload" as="style" href="http://firefly-app:8080/build/assets/app-BMcc-bMa.css" nonce="PmDbiDeStySar9Cy1DVhzQ==" /><link rel="stylesheet" href="http://firefly-app:8080/build/assets/app-BMcc-bMa.css" nonce="PmDbiDeStySar9Cy1DVhzQ==" /></head>
+
+<body class="login-page bg-body-secondary">
+<div class="login-box">
+    <div class="login-logo">
+        <img src="images/logo-session.png" width="68" height="100" alt="Firefly III Logo" title="Firefly III" /><br>
+        <a href='http://firefly-app:8080'><b>Firefly</b> III</a> </div>
+    
+
+    
+    
+    
+    <div id="client-errors" class="alert alert-danger" role="alert" style="display:none;">
+        <ul id="client-errors-list"></ul>
+    </div>
+
+    <div class="card">
+        <div class="card-body register-card-body">
+            <p class="login-box-msg">Register a new account</p>
+
+            <form action="http://firefly-app:8080/register" method="post">
+                <input type="hidden" name="_token" value="cfkgj5WIh1QJsOeLJv1UBMTap1rfRUnlcO47TGTQ">
+                <input type="hidden" name="invite_code" value="">
+                <div class="input-group mb-3">
+                    <input type="email" name="email" autofocus required value="" class="form-control"
+                           placeholder="Email address"/>
+                    <div class="input-group-text"> <em class="fa-solid fa-envelope"></em> </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" autocomplete="new-password" required class="form-control"
+                           placeholder="Password" minlength="16" name="password"/>
+                    <div class="input-group-text"> <em class="fa-solid fa-lock"></em> </div>
+                </div>
+                <div class="input-group mb-3">
+                    <input type="password" autocomplete="new-password" minlength="16" required class="form-control"
+                           placeholder="Password (again)" name="password_confirmation"/>
+                    <div class="input-group-text"> <em class="fa-solid fa-lock"></em> </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                            <input type="checkbox" id="verify_password" name="verify_password" value="1">
+                            <label for="verify_password">
+                                Verify password security
+                                <a href="#"
+                                    data-bs-toggle="modal" data-bs-target="#passwordModal"
+                                ><span
+                                        class="fa fa-fw fa-question-circle"></span></a>
+                            </label>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-4 offset-8">
+                        <button type="submit" class="btn btn-primary btn-block">Register</button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="mb-1 mt-3">
+                <a href="http://firefly-app:8080/login">I want to login</a>
+            </p>
+            <p class="mb-0">
+                <a href="http://firefly-app:8080/password/reset">I forgot my password</a>
+            </p>
+        </div>
+        <!-- /.form-box -->
+    </div><!-- /.card -->
+
+    <div class="modal fade" id="passwordModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    How to choose a secure password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Not a week goes by that you read in the news about a site losing the passwords of its users. Hackers and thieves use these passwords to try to steal your private information. This information is valuable.
+                </p>
+                <p>
+                    Do you use the same password all over the internet? If one site loses your password, hackers have access to all your data. Firefly III relies on you to choose a strong and unique password to protect your financial records.
+                </p>
+                <p>
+                    To help you do that Firefly III can check if the password you want to use has been stolen in the past. If this is the case, Firefly III advises you NOT to use that password.
+                </p>
+
+                <h4>How does it work?</h4>
+                <p>
+                    By checking the box, Firefly III will send the first five characters of the SHA1 hash of your password to <a href="https://haveibeenpwned.com/API/v3#PwnedPasswords">the website of Troy Hunt</a> to see if it is on the list. This will stop you from using unsafe passwords as is recommended in the latest <a href="https://pages.nist.gov/800-63-3/sp800-63b.html">NIST Special Publication</a> on this subject.
+                </p>
+                <h4>Should I check the box?</h4>
+                <p>
+                    Yes. Always verify your password is safe.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+</div>
+
+    <script nonce="PmDbiDeStySar9Cy1DVhzQ==">
+        var route = 'http://firefly-app:8080/register';
+        var passwordLengthError = 'The\u0020password\u0020must\u0020be\u0020at\u0020least\u002016\u0020characters.';
+        var passwordMatchError = 'The\u0020password\u0020confirmation\u0020does\u0020not\u0020match.';
+        var waitForVerify = 'Verifying\u0020password...';
+        var needSecurePassword = 'This\u0020is\u0020not\u0020a\u0020secure\u0020password.\u0020Please\u0020try\u0020again.\u0020For\u0020more\u0020information,\u0020visit\u0020https\u003A\/\/bit.ly\/FF3\u002Dpassword';
+        </script>
+    <script nonce="PmDbiDeStySar9Cy1DVhzQ==" src="v1/js/ff/auth/register.js"></script>
+</body>
+</html>

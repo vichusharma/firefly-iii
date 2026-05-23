@@ -1,0 +1,45 @@
+{
+  "baseUrl": "http://localhost:4200",
+  "credentials": "demo@firefly3.com",
+  "screenshots": {
+    "accountDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-12-23-558Z\\account-dialog.png",
+    "accountTypeDropdown": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-12-23-558Z\\account-type-dropdown.png",
+    "transactionDialog": "C:\\Vishnu\\Code\\firefly-iii\\resources\\angular\\puppeteer-artifacts\\dialog-check-2026-05-22T15-12-23-558Z\\transaction-dialog.png"
+  },
+  "dialogs": {
+    "account": {
+      "opensCorrectly": true,
+      "centered": true,
+      "centerOffset": {
+        "x": -4,
+        "y": 0
+      },
+      "formAligned": true,
+      "labelsLeftOfInputs": true,
+      "labelOverlap": false,
+      "overlapFields": [],
+      "excessiveWhitespace": false,
+      "whitespace": {
+        "top": 46.8,
+        "bottom": 25,
+        "maxGap": 51.8
+      },
+      "accountTypeDropdown": {
+        "opens": true,
+        "optionCount": 4,
+        "options": [
+          "Asset",
+          "Liability",
+          "Expense",
+          "Revenue"
+        ],
+        "labelMovesUp": true,
+        "textOverlapWhileOpen": false,
+        "textOverlapAfterSelection": false,
+        "selectedValue": "Asset"
+      }
+    }
+  },
+  "overall": "good",
+  "issues": []
+}
