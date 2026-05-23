@@ -65,7 +65,7 @@ use FireflyIII\TransactionRules\Actions\UpdatePiggyBank;
 return [
     // default values for certain things:
     'configuration'                        => [
-        'single_user_mode' => true,
+        'single_user_mode' => (bool)env('SINGLE_USER_MODE', true),
         'is_demo_site'     => false,
     ],
     // some feature flags:
