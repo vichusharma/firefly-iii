@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { ApiService } from '@core/services/api.service';
+import { SettingsService } from '@core/services/settings.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AccountCreateDialogComponent } from '@features/accounts/account-create-dialog/account-create-dialog.component';
@@ -50,7 +51,7 @@ import { BudgetCreateDialogComponent } from '@features/budgets/budget-create-dia
                 <mat-icon>trending_up</mat-icon>
               </mat-card-header>
               <mat-card-content>
-                <div class="stat-value">{{ totalAssets | currency }}</div>
+                <div class="stat-value">{{ totalAssets | currency: currencyCode }}</div>
                 <p class="stat-change positive">
                   <mat-icon>arrow_upward</mat-icon>
                   Assets Balance
@@ -66,7 +67,7 @@ import { BudgetCreateDialogComponent } from '@features/budgets/budget-create-dia
                 <mat-icon>shopping_cart</mat-icon>
               </mat-card-header>
               <mat-card-content>
-                <div class="stat-value">{{ totalExpenses | currency }}</div>
+                <div class="stat-value">{{ totalExpenses | currency: currencyCode }}</div>
                 <p class="stat-change">This month</p>
               </mat-card-content>
             </mat-card>
@@ -92,7 +93,7 @@ import { BudgetCreateDialogComponent } from '@features/budgets/budget-create-dia
                 <mat-icon>attach_money</mat-icon>
               </mat-card-header>
               <mat-card-content>
-                <div class="stat-value">{{ totalIncome | currency }}</div>
+                <div class="stat-value">{{ totalIncome | currency: currencyCode }}</div>
                 <p class="stat-change">This month</p>
               </mat-card-content>
             </mat-card>
@@ -347,13 +348,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   budgetUsed = 0;
   accountCount = 0;
   budgetCount = 0;
+  currencyCode = 'EUR';
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private apiService: ApiService,
-    private dialog: MatDialog
-  ) {}
+    private dialog: MatDialog,
+    private settingsService: SettingsService
+  ) {
+    // Set currency code from settings (defaults to EUR)
+    this.currencyCode = this.settingsService.getCurrency();
+  }
 
   ngOnInit(): void {
     this.loadDashboardData();
