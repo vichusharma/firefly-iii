@@ -360,6 +360,14 @@ export class AccountCreateDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Show immediate fallback data while loading from API
+    this.currencies = [
+      { id: 'eur', code: 'EUR', name: 'Euro' },
+      { id: 'usd', code: 'USD', name: 'US Dollar' },
+      { id: 'gbp', code: 'GBP', name: 'British Pound' },
+      { id: 'jpy', code: 'JPY', name: 'Japanese Yen' },
+      { id: 'chf', code: 'CHF', name: 'Swiss Franc' },
+    ];
     this.loadCurrencies();
     this.onTypeChange();
     // Set balance date to today by default
@@ -375,7 +383,11 @@ export class AccountCreateDialogComponent implements OnInit {
     this.currenciesLoading = true;
     this.apiService.get<any>('currencies', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.currencies = this.normalizeCollection<CurrencyOption>(response);
+        const apiCurrencies = this.normalizeCollection<CurrencyOption>(response);
+        // Only replace fallback if API returned data
+        if (apiCurrencies && apiCurrencies.length > 0) {
+          this.currencies = apiCurrencies;
+        }
         // Sort currencies with EUR first
         this.currencies.sort((a, b) => {
           if (a.code === 'EUR') return -1;
@@ -389,10 +401,8 @@ export class AccountCreateDialogComponent implements OnInit {
         this.currenciesLoading = false;
       },
       error: (err) => {
-        console.error('Error loading currencies:', err);
-        // Fallback to EUR if API fails
-        this.currencies = [{ id: 'eur', code: 'EUR', name: 'Euro' }];
-        this.accountForm.get('currency_code')?.setValue('EUR', { emitEvent: false });
+        console.error('Error loading currencies from API:', err);
+        // Keep fallback currencies, just stop loading indicator
         this.currenciesLoading = false;
       },
     });

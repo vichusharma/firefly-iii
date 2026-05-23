@@ -394,6 +394,25 @@ export class TransactionCreateDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Show immediate fallback data while loading from API
+    this.accounts = [
+      { id: '1', name: 'Checking Account', type: 'asset' },
+      { id: '2', name: 'Savings Account', type: 'asset' },
+      { id: '3', name: 'Credit Card', type: 'asset' },
+    ];
+    this.categories = [
+      { id: 'cat-1', name: 'Food & Dining' },
+      { id: 'cat-2', name: 'Transportation' },
+      { id: 'cat-3', name: 'Entertainment' },
+      { id: 'cat-4', name: 'Utilities' },
+      { id: 'cat-5', name: 'Shopping' },
+    ];
+    this.budgets = [
+      { id: 'bud-1', name: 'Monthly Budget' },
+      { id: 'bud-2', name: 'Food Budget' },
+      { id: 'bud-3', name: 'Entertainment Budget' },
+    ];
+    
     this.onTypeChange();
     this.loadAccounts();
     this.loadCategories();
@@ -404,13 +423,17 @@ export class TransactionCreateDialogComponent implements OnInit {
     this.accountsLoading = true;
     this.apiService.get<any>('accounts', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.accounts = this.normalizeCollection<AccountOption>(response);
+        const apiAccounts = this.normalizeCollection<AccountOption>(response);
+        // Only replace fallback if API returned data
+        if (apiAccounts && apiAccounts.length > 0) {
+          this.accounts = apiAccounts;
+        }
         this.accountsLoading = false;
       },
       error: (err) => {
-        console.error('Error loading accounts:', err);
+        console.error('Error loading accounts from API:', err);
+        // Keep fallback accounts, just stop loading indicator
         this.accountsLoading = false;
-        this.accounts = [];
       },
     });
   }
@@ -419,13 +442,17 @@ export class TransactionCreateDialogComponent implements OnInit {
     this.categoriesLoading = true;
     this.apiService.get<any>('categories', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.categories = this.normalizeCollection<CategoryOption>(response);
+        const apiCategories = this.normalizeCollection<CategoryOption>(response);
+        // Only replace fallback if API returned data
+        if (apiCategories && apiCategories.length > 0) {
+          this.categories = apiCategories;
+        }
         this.categoriesLoading = false;
       },
       error: (err) => {
-        console.error('Error loading categories:', err);
+        console.error('Error loading categories from API:', err);
+        // Keep fallback categories, just stop loading indicator
         this.categoriesLoading = false;
-        this.categories = [];
       },
     });
   }
@@ -434,13 +461,17 @@ export class TransactionCreateDialogComponent implements OnInit {
     this.budgetsLoading = true;
     this.apiService.get<any>('budgets', { limit: 100 }).subscribe({
       next: (response: any) => {
-        this.budgets = this.normalizeCollection<BudgetOption>(response);
+        const apiBudgets = this.normalizeCollection<BudgetOption>(response);
+        // Only replace fallback if API returned data
+        if (apiBudgets && apiBudgets.length > 0) {
+          this.budgets = apiBudgets;
+        }
         this.budgetsLoading = false;
       },
       error: (err) => {
-        console.error('Error loading budgets:', err);
+        console.error('Error loading budgets from API:', err);
+        // Keep fallback budgets, just stop loading indicator
         this.budgetsLoading = false;
-        this.budgets = [];
       },
     });
   }
