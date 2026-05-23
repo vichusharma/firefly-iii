@@ -1,1 +1,0 @@
-{"ast":null,"code":"export const routes = [{\n  path: '',\n  loadComponent: () => import('./accounts-list/accounts-list.component').then(m => m.AccountsListComponent)\n}, {\n  path: ':id',\n  loadComponent: () => import('./account-detail/account-detail.component').then(m => m.AccountDetailComponent)\n}];","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

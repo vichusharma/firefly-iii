@@ -1,1 +1,0 @@
-{"ast":null,"code":"export const routes = [{\n  path: '',\n  loadComponent: () => import('./budgets-list/budgets-list.component').then(m => m.BudgetsListComponent)\n}];","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}

@@ -1,1 +1,0 @@
-{"ast":null,"code":"export const routes = [{\n  path: '',\n  loadComponent: () => import('./importer-list/importer-list.component').then(m => m.ImporterListComponent)\n}];","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
