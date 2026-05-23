@@ -91,7 +91,7 @@ interface CurrencyOption {
                 <mat-form-field appearance="outline" class="dialog-form-field">
                   <mat-label>Account role</mat-label>
                   <mat-select formControlName="account_role">
-                    <mat-option *ngFor="let role of accountRoles" [value]="role.value">
+                    <mat-option *ngFor="let role of accountRoles; trackBy: trackByAccountRoleValue" [value]="role.value">
                       {{ role.label }}
                     </mat-option>
                   </mat-select>
@@ -108,7 +108,8 @@ interface CurrencyOption {
                 <mat-form-field appearance="outline" class="dialog-form-field">
                   <mat-label>Currency</mat-label>
                   <mat-select formControlName="currency_code">
-                    <mat-option *ngFor="let currency of currencies" [value]="currency.code">
+                    <mat-option *ngIf="currenciesLoading" disabled>Loading currencies...</mat-option>
+                    <mat-option *ngFor="let currency of currencies; trackBy: trackByCurrencyCode" [value]="currency.code">
                       {{ currency.code }} · {{ currency.name }}
                     </mat-option>
                   </mat-select>
@@ -318,6 +319,7 @@ export class AccountCreateDialogComponent implements OnInit {
   accountForm: FormGroup;
   isSubmitting = false;
   currencies: CurrencyOption[] = [];
+  currenciesLoading = false;
 
   accountRoles = [
     { value: 'defaultAsset', label: 'Default asset' },
@@ -360,18 +362,38 @@ export class AccountCreateDialogComponent implements OnInit {
   ngOnInit(): void {
     this.loadCurrencies();
     this.onTypeChange();
+    // Set balance date to today by default
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    this.accountForm.get('opening_balance_date')?.setValue(today);
     this.accountForm.get('opening_balance')?.valueChanges.subscribe(() => {
       this.updateOpeningBalanceDateValidator();
     });
   }
 
   loadCurrencies(): void {
+    this.currenciesLoading = true;
     this.apiService.get<any>('currencies', { limit: 100 }).subscribe({
       next: (response: any) => {
         this.currencies = this.normalizeCollection<CurrencyOption>(response);
+        // Sort currencies with EUR first
+        this.currencies.sort((a, b) => {
+          if (a.code === 'EUR') return -1;
+          if (b.code === 'EUR') return 1;
+          return a.code.localeCompare(b.code);
+        });
+        // Ensure EUR is set as default if not already set
+        if (!this.accountForm.get('currency_code')?.value || this.accountForm.get('currency_code')?.value !== 'EUR') {
+          this.accountForm.get('currency_code')?.setValue('EUR', { emitEvent: false });
+        }
+        this.currenciesLoading = false;
       },
       error: (err) => {
         console.error('Error loading currencies:', err);
+        // Fallback to EUR if API fails
+        this.currencies = [{ id: 'eur', code: 'EUR', name: 'Euro' }];
+        this.accountForm.get('currency_code')?.setValue('EUR', { emitEvent: false });
+        this.currenciesLoading = false;
       },
     });
   }
@@ -484,5 +506,13 @@ export class AccountCreateDialogComponent implements OnInit {
     }
 
     dateControl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  trackByCurrencyCode(index: number, currency: CurrencyOption): string {
+    return currency.code;
+  }
+
+  trackByAccountRoleValue(index: number, role: any): string {
+    return role.value;
   }
 }

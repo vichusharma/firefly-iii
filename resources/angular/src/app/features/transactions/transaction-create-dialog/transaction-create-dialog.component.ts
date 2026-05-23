@@ -93,7 +93,8 @@ interface BudgetOption {
                   <mat-form-field appearance="outline" class="dialog-form-field" *ngIf="showSourceAccount">
                     <mat-label>From account</mat-label>
                     <mat-select formControlName="source_account_id">
-                      <mat-option *ngFor="let account of accounts" [value]="account.id">
+                      <mat-option *ngIf="accountsLoading" disabled>Loading accounts...</mat-option>
+                      <mat-option *ngFor="let account of accounts; trackBy: trackByAccountId" [value]="account.id">
                         {{ account.name }}<span *ngIf="account.type"> ({{ account.type }})</span>
                       </mat-option>
                     </mat-select>
@@ -105,7 +106,8 @@ interface BudgetOption {
                   <mat-form-field appearance="outline" class="dialog-form-field" *ngIf="showDestinationAccount">
                     <mat-label>To account</mat-label>
                     <mat-select formControlName="destination_account_id">
-                      <mat-option *ngFor="let account of accounts" [value]="account.id">
+                      <mat-option *ngIf="accountsLoading" disabled>Loading accounts...</mat-option>
+                      <mat-option *ngFor="let account of accounts; trackBy: trackByAccountId" [value]="account.id">
                         {{ account.name }}<span *ngIf="account.type"> ({{ account.type }})</span>
                       </mat-option>
                     </mat-select>
@@ -157,7 +159,8 @@ interface BudgetOption {
                     <mat-label>Category</mat-label>
                     <mat-select formControlName="category_id">
                       <mat-option value="">No category</mat-option>
-                      <mat-option *ngFor="let category of categories" [value]="category.id">
+                      <mat-option *ngIf="categoriesLoading" disabled>Loading categories...</mat-option>
+                      <mat-option *ngFor="let category of categories; trackBy: trackByCategoryId" [value]="category.id">
                         {{ category.name }}
                       </mat-option>
                     </mat-select>
@@ -167,7 +170,8 @@ interface BudgetOption {
                     <mat-label>Budget</mat-label>
                     <mat-select formControlName="budget_id">
                       <mat-option value="">No budget</mat-option>
-                      <mat-option *ngFor="let budget of budgets" [value]="budget.id">
+                      <mat-option *ngIf="budgetsLoading" disabled>Loading budgets...</mat-option>
+                      <mat-option *ngFor="let budget of budgets; trackBy: trackByBudgetId" [value]="budget.id">
                         {{ budget.name }}
                       </mat-option>
                     </mat-select>
@@ -352,6 +356,9 @@ export class TransactionCreateDialogComponent implements OnInit {
   accounts: AccountOption[] = [];
   categories: CategoryOption[] = [];
   budgets: BudgetOption[] = [];
+  accountsLoading = true;
+  categoriesLoading = true;
+  budgetsLoading = true;
 
   constructor(
     private fb: FormBuilder,
@@ -394,36 +401,60 @@ export class TransactionCreateDialogComponent implements OnInit {
   }
 
   loadAccounts(): void {
+    this.accountsLoading = true;
     this.apiService.get<any>('accounts', { limit: 100 }).subscribe({
       next: (response: any) => {
         this.accounts = this.normalizeCollection<AccountOption>(response);
+        this.accountsLoading = false;
       },
       error: (err) => {
         console.error('Error loading accounts:', err);
+        this.accountsLoading = false;
+        this.accounts = [];
       },
     });
   }
 
   loadCategories(): void {
+    this.categoriesLoading = true;
     this.apiService.get<any>('categories', { limit: 100 }).subscribe({
       next: (response: any) => {
         this.categories = this.normalizeCollection<CategoryOption>(response);
+        this.categoriesLoading = false;
       },
       error: (err) => {
         console.error('Error loading categories:', err);
+        this.categoriesLoading = false;
+        this.categories = [];
       },
     });
   }
 
   loadBudgets(): void {
+    this.budgetsLoading = true;
     this.apiService.get<any>('budgets', { limit: 100 }).subscribe({
       next: (response: any) => {
         this.budgets = this.normalizeCollection<BudgetOption>(response);
+        this.budgetsLoading = false;
       },
       error: (err) => {
         console.error('Error loading budgets:', err);
+        this.budgetsLoading = false;
+        this.budgets = [];
       },
     });
+  }
+
+  trackByAccountId(index: number, account: AccountOption): string {
+    return account.id;
+  }
+
+  trackByCategoryId(index: number, category: CategoryOption): string {
+    return category.id;
+  }
+
+  trackByBudgetId(index: number, budget: BudgetOption): string {
+    return budget.id;
   }
 
   onTypeChange(): void {

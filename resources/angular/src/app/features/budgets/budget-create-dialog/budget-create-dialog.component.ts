@@ -93,7 +93,8 @@ interface CurrencyOption {
                   <mat-form-field appearance="outline" class="dialog-form-field">
                     <mat-label>Currency</mat-label>
                     <mat-select formControlName="auto_budget_currency_code">
-                      <mat-option *ngFor="let currency of currencies" [value]="currency.code">
+                      <mat-option *ngIf="currenciesLoading" disabled>Loading currencies...</mat-option>
+                      <mat-option *ngFor="let currency of currencies; trackBy: trackByCurrencyCode" [value]="currency.code">
                         {{ currency.code }} · {{ currency.name }}
                       </mat-option>
                     </mat-select>
@@ -254,6 +255,7 @@ export class BudgetCreateDialogComponent implements OnInit {
   isSubmitting = false;
   showAutoBudgetFields = false;
   currencies: CurrencyOption[] = [];
+  currenciesLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -277,12 +279,28 @@ export class BudgetCreateDialogComponent implements OnInit {
   }
 
   loadCurrencies(): void {
+    this.currenciesLoading = true;
     this.apiService.get<any>('currencies', { limit: 100 }).subscribe({
       next: (response: any) => {
         this.currencies = this.normalizeCollection<CurrencyOption>(response);
+        // Sort currencies with EUR first
+        this.currencies.sort((a, b) => {
+          if (a.code === 'EUR') return -1;
+          if (b.code === 'EUR') return 1;
+          return a.code.localeCompare(b.code);
+        });
+        // Ensure EUR is set as default
+        if (!this.budgetForm.get('auto_budget_currency_code')?.value || this.budgetForm.get('auto_budget_currency_code')?.value !== 'EUR') {
+          this.budgetForm.get('auto_budget_currency_code')?.setValue('EUR', { emitEvent: false });
+        }
+        this.currenciesLoading = false;
       },
       error: (err) => {
         console.error('Error loading currencies:', err);
+        // Fallback to EUR if API fails
+        this.currencies = [{ id: 'eur', code: 'EUR', name: 'Euro' }];
+        this.budgetForm.get('auto_budget_currency_code')?.setValue('EUR', { emitEvent: false });
+        this.currenciesLoading = false;
       },
     });
   }
@@ -361,5 +379,9 @@ export class BudgetCreateDialogComponent implements OnInit {
 
       return item as T;
     });
+  }
+
+  trackByCurrencyCode(index: number, currency: CurrencyOption): string {
+    return currency.code;
   }
 }
